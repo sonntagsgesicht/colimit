@@ -22,7 +22,7 @@ All those predictions are under resource restrictions like
 limited time, cpu power and data traffic.
 
 As a practical application the algorithm may be supplied
-to a `mobile app <https://www.apple.com/de/app-store/>`_ backend.
+to a `mobile app <https://www.apple.com/app-store/>`_ backend.
 This is a python server application, which provides *speed limit* information
 according the way the mobile user is assumed to be driving on.
 

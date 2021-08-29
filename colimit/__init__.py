@@ -41,8 +41,8 @@ __all__ = 'Speed', 'Location', 'Way', 'Connection', 'gpx', 'test'
 '''
 Backlog
 =======
-- doc
 - add dev plotting to visualise motion
+
 update infile doc `auxilium docmaintain` 
 build doc zip file `
 cd doc/sphinx/_build/html; 

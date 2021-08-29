@@ -60,7 +60,7 @@ add file location to ``sys.path`` to be able to import it as a module
     >>> path, file = os.path.split(get_limit_file)
     >>> if path not in sys.path:
     >>>     sys.path.append(path)
-    >>> module = __import__(file.replace('.py', ''))# , fromlist=(FUNC_NAME,))
+    >>> module = __import__(file.replace('.py', ''))
     >>> get_limit = getattr(module, 'get_limit')
 
 now, 'get_limit' can be tested.
@@ -80,10 +80,8 @@ now invoke 'get_ways' for testing purpose (using file_cache to reduce server tra
 
 .. code-block:: python
 
-    >>> ways = ci.get_ways(latitude=location.latitude,
-                             longitude=location.longitude,
-                             radius=2*location.speed,
-                             file_cache=file_cache)
+    >>>ways = ci.get_ways(latitude=lat, longitude=lon, radius=rad,
+                          file_cache=file_cache)
     >>> len(ways)
 
 And to test the 'get_limit' function use 'ci.get_ways'
@@ -103,7 +101,9 @@ And use |gpx()| to generate a list of locations from a *gpx file*.
 .. code-block:: python
 
     >>> from colimit import gpx, test
-    >>> locations = gpx(self.gpx_file)
+    >>> gpx_file = "da.gpx"
+
+    >>> locations = gpx(gpx_file)
     >>> len(locations)
     10
     >>> test(locations, ci.get_ways, get_limit_file)
@@ -140,7 +140,7 @@ and check if it works as expected
     True
 
 Now, further practical user tests can take place
-in the `mobile app <https://www.apple.com/de/app-store/>`_
+in the `mobile app <https://www.apple.com/app-store/>`_
 (after setting up our username in app settings).
 
 .. warning::
