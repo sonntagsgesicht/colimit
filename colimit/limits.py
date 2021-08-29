@@ -4,16 +4,18 @@
 # -------
 # better know your limits
 # 
-# Author:   Jan-Philipp Hoffmann
-# Version:  0.1.6, copyright Friday, 27 August 2021
-# Website:  https://code.fbi.h-da.de/colimit
+# Author:   sonntagsgesicht
+# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
 
+import json
+import gzip
 import os
+
 import requests
 
-from .location import Location
 from .way import Way
 
 __all__ = "Connection",
@@ -27,28 +29,64 @@ METHODS_WITH_SECRET = 'upload', 'download'
 class Connection(object):
 
     def __init__(self, username, password,
-                 url=URL, port=PORT, verify=True,
-                 timeout=TIMEOUT):
+                 url=URL, port=None, timeout=None):
+        """ |Connection| to a `limits` development server
+
+        :param username: the username
+        :param password: the password
+        :param url: url to the `limits` server
+        :param port: port to connect to server
+        :param timeout: timeout for requests
+
+        the `limits` development server stores
+        and uses the `get_limit` functions on user requests.
+
+        You can invoke our `get_limit` code online by calling
+
+            `https://<url>:<port>/call/<username>?lat=50.89&lon=8.12&spd=8.4&dir=41.34`
+
+        On instantiation |Connection()| connects to the server.
+
+        It downloads current `get_limit` code on the server
+        which then can be retrieved at |Connection().get_limit_code|.
+
+        To update your `get_limit` code
+        use |Connection.update_get_limit_code()|.
+
+        To call the `limits` database of geo data you can use
+        |Connection().get_ways()|.
+        It selects |Way()| items in a requested boundary as it can be done
+        within you `get_limit` code.
+        It can be used to test your code locally.
+
+        To invoke our `get_limit` code online programmatically use
+        |Connection().get_limit()|.
+
+        """
+
         self._usr = username
         self._pwd = password
-        self._url = url
-        self._port = port
+        self._url = url or URL
+        self._port = port or PORT
         self._tmt = timeout
         print('connect as "%s" to %s:%s' % (username, url, port))
-        self._func = ''
-        self._key = verify
-        if self._ping():
-            self._func = self._download()
-        else:
+        self._key = True
+        if not self._ping():
             print('%s:%s is offline' % (url, port))
 
     @property
     def get_limit_code(self):
-        return str(self._func)
+        """ current `get_limit` on server side """
+        return str(self._download())
 
     # -- public methods ---
 
     def update_get_limit_code(self, path):
+        """ upload `get_limit` code on server side
+
+        :param path: full path to the `get_limit` file
+
+        """
         if os.path.exists(path):
             if not self._upload_from_file(path):
                 raise AssertionError("Code update failed.")
@@ -57,17 +95,32 @@ class Connection(object):
         else:
             if not self._download_to_file(path):
                 raise AssertionError("Code download failed.")
-        with open(path, 'r') as f:
-            self._func = f.read()
         return self.get_limit_code
 
     def get_limit(self, latitude=None, longitude=None,
                   speed=None, direction=None, location=None):
+        """ invoke `get_limit` code online
+
+        :param latitude: latitude in degrees
+        :param longitude: longitutde in degrees
+        :param speed: speed in mps
+        :param direction: direction in degrees north
+        :param location: (alternative) |Location()| to retrieve
+              **latitude**, **longitude**, **speed** and **direction**
+              from. If given, the other arguments may overrule
+              the **location** properties.
+        :return: :class:`float` as the relevant speed limit or
+            (:class:`float`, :class:`tuple` (|Way()|))
+            as the relevant speed limit in first place
+            and in second place a tuple of |Way()|
+            in descending order expected to be taken.
+
+        """
         if location:
-            latitude = location.latitude
-            longitude = location.longitude
-            speed = location.speed
-            direction = location.direction
+            latitude = latitude or location.latitude
+            longitude = longitude or location.longitude
+            speed = speed or location.speed
+            direction = direction or location.direction
         kwargs = {
             "latitude": float(latitude),
             "longitude": float(longitude),
@@ -87,7 +140,36 @@ class Connection(object):
 
     def get_ways(self, latitude=None, longitude=None, radius=None,
                  south=None, west=None, north=None, east=None, area=None,
-                 force=False, timeout=None):
+                 timeout=None, file_cache=''):
+        """ call the `limits` database as inside the `get_limits` code
+
+        :param latitude: in degrees
+        :param longitude: in degrees
+        :param radius: in meters
+        :param south: in degrees
+        :param west: in degrees
+        :param north: in degrees
+        :param east: in degrees
+        :param area: string (see https://wiki.openstreetmap.org/wiki/Area)
+        :param timeout: timeout seconds in OSM query
+        :param file_cache: path to local file to use or cache request results
+            (ignored in online usage on server side)
+        :return: :class:`tuple` (|Way()|)
+
+        If given
+        **latitude**, **longitude** and **radius**
+        are used to derive
+        **south**, **west**, **north** and **east**
+        as the boundary corners in which the selected
+        |Way()| objects may be found.
+
+        If **south**, **west**, **north** and **east** are given
+        **latitude**, **longitude** and **radius** will be ignored.
+
+        If **area** is given, the resulting data might be filtered by the
+        boundary **south**, **west**, **north** and **east** if given.
+
+        """
         timeout = TIMEOUT if timeout is None else timeout
         kwargs = {
             "latitude": latitude,
@@ -99,8 +181,15 @@ class Connection(object):
             "east": east,
             "area": area,
             "timeout": timeout,
-            "force": force
         }
+
+        if file_cache and not file_cache.endswith('.json.zip'):
+            file_cache += '.json.zip'
+
+        if os.path.exists(file_cache):
+            ways = json.load(gzip.open(file_cache, "rt"))
+            return tuple(Way(**w) for w in ways)
+
         response = requests.post(
             url=self._build_url('get_ways'),
             json=kwargs,
@@ -108,6 +197,9 @@ class Connection(object):
         if not response.status_code == 200:
             raise ConnectionError(response.text)
         result = response.json()
+        ways = tuple(result['ways'])
+        if file_cache:
+            json.dump(ways, gzip.open(file_cache, 'wt'), indent=2)
         ways = tuple(Way(**w) for w in result['ways'])
         return ways
 

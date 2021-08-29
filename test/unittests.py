@@ -4,9 +4,9 @@
 # -------
 # better know your limits
 # 
-# Author:   Jan-Philipp Hoffmann
-# Version:  0.1.6, copyright Friday, 27 August 2021
-# Website:  https://code.fbi.h-da.de/colimit
+# Author:   sonntagsgesicht
+# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
 
@@ -20,6 +20,7 @@ sys.path.append('..')
 
 pkg = __import__(os.getcwd().split(os.sep)[-1])
 from colimit import Speed, Location, Way, Connection, gpx, test
+from colimit.testing import _Tester
 
 logging.basicConfig()
 
@@ -42,7 +43,7 @@ class FirstUnitTests(unittest.TestCase):
                                  timedelta=self.one_sec)
         self.locations = [self.location]
         for i in range(10):
-            self.locations.append(self.locations[-1].next(next_id=10 + i))
+            self.locations.append(self.locations[-1].next(id=10 + i))
 
         sw, ne = Location.boundary(*self.locations, radius=self.radius)
         self.swne_dict = {
@@ -61,8 +62,16 @@ class FirstUnitTests(unittest.TestCase):
             'direction': self.direction
         }
 
-        self.gpx_file = 'data/gpx/rhg.gpx'
-        self.get_limit_file = 'data/uploads/h_da_test.py'
+        self.gpx_file = 'data/rhg.gpx'
+        self.get_limit_file = 'data/h_da_test.py'
+        self.file_cache = 'data/file_cache.json.zip'
+
+        if os.path.exists(self.file_cache):
+            os.remove(self.file_cache)
+
+    def tearDown(self):
+        if os.path.exists(self.file_cache):
+            os.remove(self.file_cache)
 
     def test_pkg_name(self):
         self.assertEqual(os.getcwd().split(os.sep)[-1], pkg.__name__)
@@ -82,7 +91,7 @@ class FirstUnitTests(unittest.TestCase):
         self.assertAlmostEqual(float(loc.speed), float(self.speed))
         self.assertAlmostEqual(loc.direction, self.direction)
 
-        loc_dict = Location(**loc.dict)
+        loc_dict = loc.clone()
         self.assertEqual(loc, loc_dict)
 
         self.assertEqual(next(loc), loc.next())
@@ -141,13 +150,14 @@ class FirstUnitTests(unittest.TestCase):
         for g in way.geometry:
             self.assertTrue(g in way)
 
-        way_dict = Way(**way.dict)
+        way_dict = Way(**way._dict)
         self.assertEqual(way, way_dict)
 
     def test_testing(self):
         locations = gpx(self.gpx_file)
         self.assertEqual(2299, len(locations))
-        t = test(locations, lambda **x: (Way(),), self.get_limit_file)
+        t = _Tester()
+        test(locations, lambda **x: (Way(),), self.get_limit_file, tester=t)
         self.assertEqual(len(locations), len(t.fails))
         print(t)
 
@@ -158,11 +168,22 @@ class FirstUnitTests(unittest.TestCase):
         module = __import__(file.replace('.py', ''))# , fromlist=(FUNC_NAME,))
         get_limit = getattr(module, 'get_limit')
 
-        ci = Connection(self.user, self.password, self.url, self.port,
-                        verify=self.pub_key)
+        ci = Connection(self.user, self.password, self.url, self.port)
         ci.update_get_limit_code(self.get_limit_file)
 
         result = ci.get_ways(**self.swne_dict)
+        self.assertTrue(isinstance(result, tuple))
+        self.assertEqual(28, len(result))
+        self.assertTrue(all(isinstance(w, Way) for w in result))
+
+        self.assertFalse(os.path.exists(self.file_cache))
+        result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
+        self.assertTrue(isinstance(result, tuple))
+        self.assertEqual(28, len(result))
+        self.assertTrue(all(isinstance(w, Way) for w in result))
+
+        self.assertTrue(os.path.exists(self.file_cache))
+        result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
         self.assertTrue(isinstance(result, tuple))
         self.assertEqual(28, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))

@@ -4,9 +4,9 @@
 # -------
 # better know your limits
 # 
-# Author:   Jan-Philipp Hoffmann
-# Version:  0.1.6, copyright Friday, 27 August 2021
-# Website:  https://code.fbi.h-da.de/colimit
+# Author:   sonntagsgesicht
+# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
 
@@ -17,12 +17,13 @@ from auxilium import replacements_from_pkg, replacements, replacements_str
 sys.path.insert(0, os.path.abspath('../../'))  #  needed to import pkg
 sys.path.insert(0, os.path.abspath('.'))  #  needed to import pkg
 
-if os.getcwd().find('readthedocs')<0:
+if os.getcwd().find('readthedocs') < 0:
     pkg = __import__(os.getcwd().split(os.sep)[-3])
 else:
     pkg = __import__(os.getcwd().split(os.sep)[-5])
 
-sys.path.insert(0, os.path.abspath('../../' + pkg.__name__))  #  needed to import pkg
+#  needed to import pkg
+sys.path.insert(0, os.path.abspath('../../' + pkg.__name__))
 
 # -- General configuration ------------------------------------------------
 

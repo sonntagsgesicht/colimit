@@ -4,9 +4,9 @@
 # -------
 # better know your limits
 # 
-# Author:   Jan-Philipp Hoffmann
-# Version:  0.1.6, copyright Friday, 27 August 2021
-# Website:  https://code.fbi.h-da.de/colimit
+# Author:   sonntagsgesicht
+# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
 
@@ -22,7 +22,7 @@ from .location import Location
 from .speed import Speed
 
 
-class Tester(object):
+class _Tester(object):
 
     def __init__(self):
         self.fails = list()
@@ -34,13 +34,21 @@ class Tester(object):
 
     @staticmethod
     def _parse_result(result):
-        if isinstance(result, tuple) and len(result)==2:
+        if isinstance(result, tuple) and len(result) == 2:
             return result
         if isinstance(result, (int, float, Speed)):
             return float(result), ()
         return -1., ()
 
     def __call__(self, location, result_1, result_2, time_1, time_2):
+        """ add test data
+
+        :param location: current test |Location()|
+        :param result_1: result of first `get_limit` function
+        :param result_2: result of second `get_limit` function or **None**
+        :param time_1: execution time of first `get_limit` function
+        :param time_2: execution time of second `get_limit` function or 0.0
+        """
         self._tape.append((location, result_1, result_2, time_1, time_2))
         self.cnt += 1
         self.timings_1.append(time_1)
@@ -59,13 +67,14 @@ class Tester(object):
         return 'Tester(tested %d locations with %d fails)' % args
 
 
-def _call_get_limit(location, get_limit, get_ways, cache, folder):
+def _call_get_limit(location, get_limit, get_ways, cache=None, folder=''):
     kwargs = {
         'latitude': location.latitude,
         'longitude': location.longitude,
         'speed': location.speed,
         'direction': location.direction,
-        'get_ways': lambda **kw: get_ways(cache=cache, folder=folder, **kw)
+        'get_ways': get_ways
+        # 'get_ways': lambda **kw: get_ways(cache=cache, folder=folder, **kw)
     }
     try:
         result = get_limit(**kwargs)
@@ -86,20 +95,46 @@ def _import(get_limit_file):
         return getattr(module, 'get_limit') if module else None
 
 
-def gpx(gpx_file, wpt=False, geometry=None):
+def gpx(gpx_file, wpt=False):
+    """ builds list of locations from gpx file
+
+    :param gpx_file: full path to gpx file
+        (see https://en.wikipedia.org/wiki/GPS_Exchange_Format)
+    :param wpt: bool, if **True** the **wpt** tag entries are used
+        to build |Location()| instances in stead of the **trkpt** tag.
+        Default is **False**.
+
+    :return: :class:`tuple` (|Location()|)
+
     """
-    <gpx xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ogr="http://osgeo.org/gdal" xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="GDAL 3.0.4" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+    """
+    <gpx
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ogr="http://osgeo.org/gdal"
+        xmlns="http://www.topografix.com/GPX/1/1"
+        version="1.1"
+        creator="GDAL 3.0.4"
+        xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+        http://www.topografix.com/GPX/1/1/gpx.xsd">
       <metadata>
-        <bounds minlat="49.865450455524133" minlon="8.633527001159154" maxlat="49.869904851145897" maxlon="8.639932498881354"/>
+        <bounds
+            minlat="49.865450455524133"
+            minlon="8.633527001159154"
+            maxlat="49.869904851145897"
+            maxlon="8.639932498881354"/>
       </metadata>
-      <wpt lat="49.869597505257772" lon="8.633527001159154">
+      <wpt
+        lat="49.869597505257772"
+        lon="8.633527001159154">
         <time>2019-12-06T14:19:25Z</time>
       </wpt>
       <trk>
         <name>h_da</name>
         <trkseg>
-          <trkpt lat="49.869597505257772" lon="8.633527001159154">
-        	<ele>99.07395026675061</ele>
+          <trkpt
+            lat="49.869597505257772"
+            lon="8.633527001159154">
+            <ele>99.07395026675061</ele>
             <time>2019-12-06T14:20:00Z</time>
           </trkpt>
         </trkseg>
@@ -113,13 +148,13 @@ def gpx(gpx_file, wpt=False, geometry=None):
 
     total_dist = 0.0
     location_list = list()
-    last = Location(geometry=geometry)
+    last = Location()
     root = XTree.parse(gpx_file)
     for child in root.iter(tag):
         lat = float(child.attrib.get('lat', 0.0))
         lon = float(child.attrib.get('lon', 0.0))
         tm = datetime.strptime(child.find(time).text, datetime_format)
-        pnt = Location(lat, lon, time=tm, geometry=geometry)
+        pnt = Location(lat, lon, time=tm)
         if last:
             diff = last.diff(pnt)
             if 0. < float(diff.speed):
@@ -145,7 +180,38 @@ def gpx(gpx_file, wpt=False, geometry=None):
 
 
 def test(locations, get_ways, get_limit_file, get_limit_file_2=None,
-         tester=Tester(), cache=dict(), folder='data'):
+         tester=None, cache=dict(), folder='data'):
+    """ test function to test or compare `get_limit` codes
+
+    :param locations: list of locations
+    :param get_ways: `get_ways` function forwarded
+        to get_limit functions as argument
+    :param get_limit_file: file to first `get_limit` implementation,
+        i.e. function with signature
+
+            `get_limit(latitude, longitude, speed, direction, get_ways)`
+
+        returning the limit and optional a tuple of Ways like
+        |Connection().get_limit()|.
+
+    :param get_limit_file_2: second `get_limit` implementation
+        to compare first with (optional)
+    :param tester: function (optional with default :func:`print()`)
+        or callable with signature
+
+            `tester(location, result, result_2, timing, timing_2)`
+
+        where
+
+            * **location** is the |Location|
+            * **result** is the return value of first `get_limit`
+            * **result_2** is the return value of second `get_limit` or **None**
+            * **timing** is the execution time of first `get_limit`
+            * **timing_2** is the execution time of second `get_limit` or 0.0
+
+    """
+    if tester is None:
+        tester = (lambda *x: print(*x))
 
     # build testing `get_limit`
     get_limit = _import(get_limit_file)
@@ -160,7 +226,8 @@ def test(locations, get_ways, get_limit_file, get_limit_file_2=None,
         step_2 = 0.0
         if get_limit_2:
             start_2 = timer()
-            result_2 = _call_get_limit(location, get_limit_2, get_ways, cache, folder)
+            result_2 = _call_get_limit(location, get_limit_2, get_ways, cache,
+                                       folder)
             step_2 = timer() - start_2
         tester(location, result, result_2, step, step_2)
     return tester

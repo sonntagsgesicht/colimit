@@ -1,5 +1,4 @@
 
-.. module:: colimit
 
 -----------------
 API Documentation
