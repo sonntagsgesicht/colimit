@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.7, copyright Sunday, 29 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -154,6 +154,16 @@ class Connection(object):
         :param timeout: timeout seconds in OSM query
         :param file_cache: path to local file to use or cache request results
             (ignored in online usage on server side)
+            If **file_cache** does not exits, it will be created
+            with '.json.zip' extension.
+            Data will be downloaded from the server
+            and stored in the **file_cache** file.
+            Next time 'get_ways' is invoked the file exits.
+            So the other arguments will be ignored
+            and the stored data returned.
+            No data will be downloaded from the server
+            until the **file_cache** is removed.
+
         :return: :class:`tuple` (|Way()|)
 
         If given

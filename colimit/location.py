@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.7, copyright Sunday, 29 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -71,10 +71,18 @@ class Location(object):
                  **kwargs):
         """ point on earth with time, speed and direction
 
-        :param latitude: latitude coordinate (between -90 and 90 degrees)
-        :param longitude: longitude coordinate (between -180 and 180 degrees)
+        :param latitude:
+            `latitude coordinate <https://en.wikipedia.org/wiki/Latitude>`_
+             (between -90 and 90 degrees)
+        :param longitude:
+            `longitude coordinate <https://en.wikipedia.org/wiki/Longitude>`_
+            (between -180 and 180 degrees)
         :param speed: speed value (as |Speed|)
-        :param direction: heading direction as course (between 0 and 360 degrees)
+        :param direction: heading direction or
+            `cardinal direction
+            <https://en.wikipedia.org/wiki/Cardinal_direction>`_
+            in degrees (clockwise between 0 and 360 degrees)
+            from north=0.0 to east=90.0 and south=180.0 to west=270.0
         :param timedelta: time period (as :class:`datetime.timedelta`)
                 which can be used to derive a distance by
                 |Location().speed| * |Location().timedelta|
@@ -230,7 +238,21 @@ class Location(object):
             (except **speed**, **direction** and **timedelta**)
         :return: |Location|
 
-        transformation makes use of geometry class property
+        |Location.diff()| is somehow the inverse to |Location.next()|
+        since
+
+        .. code-block:: python
+
+            >>> from colimit import Location
+            >>> h_da = colimit.Location(latitude=49.867219, longitude=8.638495)
+            >>> tu_da = colimit.Location(latitude=49.875148, longitude=8.658122)
+            >>> delta = h_da.diff(tu_da)
+            >>> h_da.coordinate == delta.coordinate
+            True
+            >>> delta.next().coordinate == tu_da.coordinate
+            True
+
+        Note the transformation makes use of geometry class property
         |Location.polar()| which sets the underlying geometry
         """
         # build location to get in time from self to other
@@ -239,13 +261,15 @@ class Location(object):
         spd = dist / td.total_seconds() if td else 0.0
         return self.clone(speed=spd, direction=drc, timedelta=td, **kwargs)
 
-    def next(self, radius=None, direction=None, **kwargs):
+    def next(self, radius=None, direction=None, timedelta=None, **kwargs):
         """ location in given distance and direction
 
         :param radius: distance in meters
-            (optional with default |Location().speed| * |Location().timedelta|)
-        :param direction: `azimuth` direction in degrees
+            (optional with default |Location().speed| * **timedelta**)
+        :param direction: direction in cardinal degrees
             (optional with default |Location().direction|)
+        :param timedelta: time period of motion
+            (optional with default |Location().timedelta|)
         :param kwargs: optional Location argument overwrites
             (except **latitude**, **longitude** and **time**)
         :return: |Location|
@@ -253,12 +277,16 @@ class Location(object):
         transformation makes use of geometry class property
         |Location.xy()| which sets the underlying geometry
         """
+        if timedelta is None:
+            timedelta = self.timedelta
+        if isinstance(timedelta, datetime.timedelta):
+            timedelta = timedelta.total_seconds()
         if radius is None:
-            radius = self.speed.mps * self.timedelta.total_seconds()
+            radius = self.speed.mps * timedelta
         if direction is None:
             direction = self.direction
         lat, lon = self.__class__.xy(*self.coordinate, radius, direction)
-        tm = self.time + self.timedelta
+        tm = self.time + datetime.timedelta(seconds=timedelta)
         return self.clone(latitude=lat, longitude=lon, time=tm, **kwargs)
 
     # --- private methods ---

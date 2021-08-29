@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.7, copyright Sunday, 29 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -73,7 +73,7 @@ class Speed(object):
         return '%0.2f mps (%0.2f km/h)' % (self.mps, self.kmh)
 
     def __repr__(self):
-        return str(self.kmh)
+        return str(self)
 
     def __add__(self, other):
         return Speed(float(self).__add__(float(other)))
