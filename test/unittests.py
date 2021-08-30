@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
-# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -29,7 +29,7 @@ class FirstUnitTests(unittest.TestCase):
     def setUp(self):
         self.user = self.password = "h_da_test"
         self.url, self.port = "http://macbook-philipp.local", 5000
-        # self.url, self.port = "https://limits.pythonanywhere.com", 80
+        # self.url, self.port = "https://limits.pythonanywhere.com", 443
         self.pub_key = "data/key.pub"
 
         self.radius = 123.4
@@ -64,14 +64,20 @@ class FirstUnitTests(unittest.TestCase):
 
         self.gpx_file = 'data/rhg.gpx'
         self.get_limit_file = 'data/h_da_test.py'
-        self.file_cache = 'data/file_cache.json.zip'
+        self.file_cache = 'data/file_cache'
 
         if os.path.exists(self.file_cache):
-            os.remove(self.file_cache)
+            for filename in os.listdir(self.file_cache):
+                full_name = os.path.join(self.file_cache, filename)
+                if os.path.exists(full_name) and full_name.endswith('.json.zip'):
+                    os.remove(full_name)
 
     def tearDown(self):
         if os.path.exists(self.file_cache):
-            os.remove(self.file_cache)
+            for filename in os.listdir(self.file_cache):
+                full_name = os.path.join(self.file_cache, filename)
+                if os.path.exists(full_name) and full_name.endswith('.json.zip'):
+                    os.remove(full_name)
 
     def test_pkg_name(self):
         self.assertEqual(os.getcwd().split(os.sep)[-1], pkg.__name__)
@@ -176,14 +182,16 @@ class FirstUnitTests(unittest.TestCase):
         self.assertEqual(28, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
-        self.assertFalse(os.path.exists(self.file_cache))
+        self.assertTrue(os.path.exists(self.file_cache))
+        self.assertEqual(0, len(os.listdir(self.file_cache)))
         result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
+        self.assertEqual(1, len(os.listdir(self.file_cache)))
         self.assertTrue(isinstance(result, tuple))
         self.assertEqual(28, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
-        self.assertTrue(os.path.exists(self.file_cache))
         result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
+        self.assertEqual(1, len(os.listdir(self.file_cache)))
         self.assertTrue(isinstance(result, tuple))
         self.assertEqual(28, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))

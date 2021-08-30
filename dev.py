@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
-# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -15,20 +15,47 @@ import logging
 
 pkg = __import__(os.getcwd().split(os.sep)[-1])
 
-from colimit import get_ways
-
-
 logging.basicConfig()
 
 if True:
+    from colimit import Connection, gpx, test
+    from colimit.testing import _Tester
+
+    user = password = "h_da_test"
+    url, port = "http://macbook-philipp.local", 5000
+    #url, port = "https://limits.pythonanywhere.com", 443
+    get_limit_file = 'test/data/h_da_test.py'
+    gpx_file = 'test/data/rhg.gpx'
+
+    locations = gpx(gpx_file)[:111]
+    ci = Connection(user, password, url, port)
+    t = _Tester()
+    test(locations, ci.get_ways, get_limit_file, tester=t)
+    t.plot(file=gpx_file + '.pdf', column='speed')
+
+    # df = pd.DataFrame(d)
+    # geometry = geopandas.points_from_xy(df.longitude, df.latitude)
+    # gdf = geopandas.GeoDataFrame(df, geometry=geometry, crs='WGS-84')
+    #
+    # ax = gdf.plot(cmap="RdYlGn_r", column='speed', markersize=1, edgecolor="k",
+    #               linewidth=5, marker='o',
+    #               figsize=(20, 20), legend=True, aspect='equal')
+    # cx.add_basemap(ax, crs=gdf.crs.to_string(), source=cx.providers.CartoDB.Voyager)
+    # plt.savefig(gpx_file + '.pdf')
+    # plt.show()
+
+
+if False:
     lat = 49.86454025314968
     lon = 8.638326231714982
     get_ways(latitude=lat, longitude=lon, radius=100, file='Darmstadt')
 
 if False:
     from dev.geometry import SphericalGeometry as geometry
+
     locations = pkg.testing.gpx('data/gpx/rhg.gpx', geometry=geometry)[:100]
-    t = pkg.test(locations, 'data/uploads/d7c5621f.py', 'data/uploads/e74ddd33.py')
+    t = pkg.test(locations, 'data/uploads/d7c5621f.py',
+                 'data/uploads/e74ddd33.py')
     print(t)
 
 if False:

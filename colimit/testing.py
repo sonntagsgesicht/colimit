@@ -5,14 +5,14 @@
 # better know your limits
 # 
 # Author:   sonntagsgesicht
-# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
 
 from importlib import reload
 from datetime import datetime
-from os.path import split
+import os
 import sys
 
 from timeit import default_timer as timer
@@ -49,8 +49,12 @@ class _Tester(object):
         :param time_1: execution time of first `get_limit` function
         :param time_2: execution time of second `get_limit` function or 0.0
         """
-        self._tape.append((location, result_1, result_2, time_1, time_2))
         self.cnt += 1
+        if self.cnt % 80:
+            print('.', end="")
+        else:
+            print('.')
+        self._tape.append((location, result_1, result_2, time_1, time_2))
         self.timings_1.append(time_1)
         self.timings_2.append(time_2)
         limit_1, _ = self._parse_result(result_1)
@@ -65,6 +69,76 @@ class _Tester(object):
     def __str__(self):
         args = self.cnt, len(self.fails)
         return 'Tester(tested %d locations with %d fails)' % args
+
+    @property
+    def geodataframe(self):
+        try:
+            from pandas import DataFrame
+            from geopandas import points_from_xy, GeoDataFrame
+        except ImportError:
+            print("GeoDataFrame requires the geopandas package.")
+            return None
+        records = list()
+        for loc, r1, r2, t1, t2 in self._tape:
+            d = loc.json
+            d['timing_1'] = t1
+            if isinstance(r1, tuple):
+                d['limit_1'], d['ways_1'] = r1
+            else:
+                d['limit_1'] = r1
+            if r2 is not None:
+                if isinstance(r2, tuple):
+                    d['limit_2'], d['ways_2'] = r2
+                else:
+                    d['limit_2'] = float(r2)
+                d['timing_2'] = t2
+                d['limit_diff'] = d['limit_1'] - d['limit_2']
+                d['timing_diff'] = d['timing_1'] - d['timing_2']
+            records.append(d)
+        if records:
+            df = DataFrame.from_records(records)
+            geometry = points_from_xy(df.longitude, df.latitude)
+            return GeoDataFrame(df, geometry=geometry, crs='WGS-84')
+
+    def plot(self, **kwargs):
+        try:
+            import contextily as cx
+            import matplotlib.pyplot as plt
+            import matplotlib as mpl
+        except ImportError:
+            print("Plotting requires the contextily and matplotlib package.")
+            return None
+        cm = 1 / 2.54
+        A4 = 29.7 * cm, 21 * cm
+
+        gdf = self.geodataframe
+        if 'limit_diff' in gdf:
+            column = 'limit_diff'
+            cmap, vmin, vmax = "jet", -50, 50
+        else:
+            column = 'limit_1'
+            cmap, vmin, vmax = "RdYlGn_r", 0, 130
+
+        file = kwargs.pop('file', None)
+
+        kwargs['column'] = kwargs.get('column', column)
+        kwargs['cmap'] = kwargs.get('cmap', cmap)
+        kwargs['vmin'] = kwargs.get('vmin', vmin)
+        kwargs['vmax'] = kwargs.get('vmax', vmax)
+        kwargs['figsize'] = kwargs.get('figsize', A4)
+        kwargs['aspect'] = kwargs.get('aspect', 'equal')
+
+        # ax = gdf.plot(cmap="RdYlGn_r", column='speed', vmin=0, vmax=130,
+        #               markersize=5, marker='o', figsize=A4, aspect='equal')
+
+        ax = gdf.plot(**kwargs, legend=True, legend_kwds={'orientation':'horizontal'})
+        cx.add_basemap(ax, crs=gdf.crs.to_string(),
+                       source=cx.providers.CartoDB.Voyager)
+        ax.set_title(column)
+        if file is not None:
+            print("save plot to", file)
+            plt.savefig(file, bbox_inches="tight")
+        plt.show()
 
 
 def _call_get_limit(location, get_limit, get_ways, cache=None, folder=''):
@@ -86,13 +160,18 @@ def _call_get_limit(location, get_limit, get_ways, cache=None, folder=''):
 
 def _import(get_limit_file):
     if get_limit_file:
-        heads, tail = split(get_limit_file)
-        if heads not in sys.path:
-            sys.path.append(heads)
-        module = __import__(tail.replace('.py', ''),
-                            fromlist=('get_limit',))
-        module = reload(module)
-        return getattr(module, 'get_limit') if module else None
+        if isinstance(get_limit_file, (str, bytes, int, os.PathLike)):
+            if not os.path.exists(get_limit_file):
+                return None
+            heads, tail = os.path.split(get_limit_file)
+            if heads not in sys.path:
+                sys.path.append(heads)
+            module = __import__(tail.replace('.py', ''),
+                                fromlist=('get_limit',))
+            module = reload(module)
+            return getattr(module, 'get_limit') if module else None
+        else:
+            return get_limit_file  # assuming to be get_limit_func
 
 
 def gpx(gpx_file, wpt=False):
@@ -230,4 +309,5 @@ def test(locations, get_ways, get_limit_file, get_limit_file_2=None,
                                        folder)
             step_2 = timer() - start_2
         tester(location, result, result_2, step, step_2)
+    print()
     return tester

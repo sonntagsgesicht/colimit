@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-#
+# 
 # Author:   sonntagsgesicht
-# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -98,7 +98,7 @@ class Connection(object):
         return self.get_limit_code
 
     def get_limit(self, latitude=None, longitude=None,
-                  speed=None, direction=None, location=None):
+                  speed=None, direction=None, location=None, **kwargs):
         """ invoke `get_limit` code online
 
         :param latitude: latitude in degrees
@@ -152,16 +152,14 @@ class Connection(object):
         :param east: in degrees
         :param area: string (see https://wiki.openstreetmap.org/wiki/Area)
         :param timeout: timeout seconds in OSM query
-        :param file_cache: path to local file to use or cache request results
+        :param file_cache: path to local folder to use or cache request results
             (ignored in online usage on server side)
-            If **file_cache** does not exits, it will be created
-            with '.json.zip' extension.
             Data will be downloaded from the server
-            and stored in the **file_cache** file.
-            Next time 'get_ways' is invoked the file exits.
-            So the other arguments will be ignored
-            and the stored data returned.
-            No data will be downloaded from the server
+            and stored in the **file_cache** folder
+            with a standardized file name (with '.json.zip' extension)
+            Next time 'get_ways' is invoked with the same arguments
+            the file exits and its contents will be returned.
+            In this case no data will be downloaded from the server
             until the **file_cache** is removed.
 
         :return: :class:`tuple` (|Way()|)
@@ -193,12 +191,23 @@ class Connection(object):
             "timeout": timeout,
         }
 
-        if file_cache and not file_cache.endswith('.json.zip'):
-            file_cache += '.json.zip'
+        if file_cache:
+            parts = list()
+            if area:
+                parts += "area", "%s_" % area
+            if all((south, west, north, east)):
+                parts += "swen", "lat%08.5f" % south, "lon%08.5f" % west, \
+                         "lat%08.5f" % north, "lon%08.5f" % east
+            if all((latitude, longitude, radius)):
+                parts += "llr", "lat%08.5f" % latitude,\
+                         "lon%08.5f" % longitude, "rad%06.2f" % radius
+            file_name = "_".join(parts)
+            file_name = file_name.replace('.','-') + ".json.zip"
+            file_path = os.path.join(file_cache, file_name)
 
-        if os.path.exists(file_cache):
-            ways = json.load(gzip.open(file_cache, "rt"))
-            return tuple(Way(**w) for w in ways)
+            if os.path.exists(file_path):
+                ways = json.load(gzip.open(file_path, "rt"))
+                return tuple(Way(**w) for w in ways)
 
         response = requests.post(
             url=self._build_url('get_ways'),
@@ -208,8 +217,10 @@ class Connection(object):
             raise ConnectionError(response.text)
         result = response.json()
         ways = tuple(result['ways'])
+
         if file_cache:
-            json.dump(ways, gzip.open(file_cache, 'wt'), indent=2)
+            json.dump(ways, gzip.open(file_path, 'wt'), indent=2)
+
         ways = tuple(Way(**w) for w in result['ways'])
         return ways
 

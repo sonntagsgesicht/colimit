@@ -5,10 +5,12 @@
 # better know your limits
 # 
 # Author:   sonntagsgesicht
-# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
+
+import datetime
 
 from .location import Location
 from .speed import Speed
@@ -21,7 +23,7 @@ class Way(object):
                  nodes: tuple = tuple(),
                  geometry: tuple = tuple(),
                  oneway: bool = False,
-                 limit: float = -1,
+                 limit: float = None,
                  variable: bool = False,
                  conditional: bool = False,
                  tags: dict = dict(),
@@ -58,8 +60,9 @@ class Way(object):
         self._geometry = geometry
         self._tags = tags or dict()
         self._oneway = oneway
-        limit = limit or kwargs.get('maxspeed', .10)
-        self._limit = Speed(limit)
+        if limit is None:
+            limit = kwargs.get('maxspeed', -1.0)
+        self._limit = Speed(float(limit))
         self._variable = variable
         self._conditional = conditional
         self._boundary = ()
@@ -124,6 +127,37 @@ class Way(object):
         return self._boundary
 
     @property
+    def center(self):
+        """ center location of bounding box """
+        return Location.center(*self._boundary)
+
+    @property
+    def diameter(self):
+        """ south-to-north and west-to-east diameter of bounding box """
+        return Location.diameter(*self.boundary)
+
+    @property
+    def length(self):
+        """ length of way """
+        length = 0.0
+        for s, e in zip(self.geometry[:-1], self.geometry[1:]):
+            length += s.dist(e)
+        return length
+
+    @property
+    def duration(self):
+        duration = datetime.timedelta()
+        for s, e in zip(self.geometry[:-1], self.geometry[1:]):
+            duration += e.time - s.time
+        return duration
+
+    @property
+    def avg_speed(self):
+        if self.duration:
+            return Speed(self.length / self.duration.total_seconds())
+        return 0.0
+
+    @property
     def _dict(self):
         # assert kwargs == Way(**kwargs)._dict()
         d = dict()
@@ -163,8 +197,10 @@ class Way(object):
             from_to = "\n from %s\n to   %s" % vals
         else:
             from_to = ""
-        if self._limit:
-            max_speed = " limit of %0.f kmh" % self._limit.kmh
+        if float(self._limit) < 0.0:
+            max_speed = "  no limit information"
+        elif self._limit:
+            max_speed = " limit of %s" % str(Speed(self._limit))
         else:
             max_speed = " no limit"
         return way + max_speed + from_to

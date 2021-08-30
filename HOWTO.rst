@@ -74,7 +74,7 @@ to store result as a json.zip file so it can be re-used next time.
     >>> fc = lambda lat, lon, spd
     >>> lat, lon, rad = 49.870210, 8.632949, 20.
     >>> spd, dir, sec = 10., 10., 1.
-    >>> file_cache = "%2.6f-%3.6f_%3.2f" %(lat, lon, rad)
+    >>> file_cache = "data"
 
 now invoke 'get_ways' for testing purpose (using file_cache to reduce server traffic)
 

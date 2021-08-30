@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-#
+# 
 # Author:   sonntagsgesicht
-# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -70,7 +70,8 @@ class Speed(object):
         return self.mps
 
     def __str__(self):
-        return '%0.2f mps (%0.2f km/h)' % (self.mps, self.kmh)
+        return '%0.2f mps (%0.2f km/h or %0.2f mph)' % \
+               (self.mps, self.kmh, self.mph)
 
     def __repr__(self):
         return str(self)

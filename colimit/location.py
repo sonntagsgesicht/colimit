@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-#
+# 
 # Author:   sonntagsgesicht
-# Version:  0.1.7, copyright Sunday, 29 August 2021
+# Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -206,6 +206,29 @@ class Location(object):
             south_west = Location(south, west).next(radius, 45 + 180)
             north_east = Location(north, east).next(radius, 45)
             return south_west, north_east
+
+    @staticmethod
+    def center(*locations, radius=0.0):
+        """ center of locations boundary
+
+        :param locations:  locations to derive center from
+        :param radius: radius of each location in locations
+                which extends the boundary
+        :return: |Location|
+        """
+        south_west, north_east = Location.boundary(*locations, radius=radius)
+        lat = (north_east.latitude - south_west.latitude)/2
+        lon = (north_east.longitude - south_west.longitude)/2
+        return Location(south_west.latitude + lat, south_west.longitude + lon)
+
+    @staticmethod
+    def diameter(*locations, radius=0.0):
+        south_west, north_east = Location.boundary(*locations, radius=radius)
+        south_east = Location(south_west.latitude, north_east.longitude)
+        north_west = Location(north_east.latitude, south_west.longitude)
+        dx, _ = Location.polar(*south_west.coordinate, *south_east.coordinate)
+        dy, _ = Location.polar(*south_west.coordinate, *north_west.coordinate)
+        return dx, xy
 
     def clone(self, **kwargs):
         """ clones a |Location| object with optional argument overwrites
