@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -228,7 +228,7 @@ class Location(object):
         north_west = Location(north_east.latitude, south_west.longitude)
         dx, _ = Location.polar(*south_west.coordinate, *south_east.coordinate)
         dy, _ = Location.polar(*south_west.coordinate, *north_west.coordinate)
-        return dx, xy
+        return dx, dy
 
     def clone(self, **kwargs):
         """ clones a |Location| object with optional argument overwrites
@@ -315,7 +315,7 @@ class Location(object):
     # --- private methods ---
 
     def __str__(self):
-        ret = "Location at (%08.6f,%009.6f)" % (self._latitude, self._longitude)
+        ret = "Location(%08.6f,%009.6f)" % (self._latitude, self._longitude)
         if self._speed or self._direction:
             ret += ' with speed %0.1f km/h in direction %0.2f°' \
                    % (self.speed.kmh, self._direction)

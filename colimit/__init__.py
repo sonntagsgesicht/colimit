@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-#
+# 
 # Author:   sonntagsgesicht
 # Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -44,10 +44,11 @@ Backlog
 
 update infile doc `auxilium docmaintain`
 build doc zip file `
-auxilium sphinx
+auxilium sphinx;
 cd doc/sphinx/_build/html;
 zip -r html.zip .;
-mv html.zip ../../../../../colimit_app/data;
-cd ../../../../;`
-build release with: `python setup.py sdist --formats=zip`
+mv html.zip ../../../../../colimit_app/staging;
+cd ../../../../;
+python setup.py sdist --formats=zip;
+cp dist/colimit-0.1.9.zip ../colimit_app/staging;
 '''

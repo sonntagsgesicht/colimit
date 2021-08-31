@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -65,6 +65,16 @@ class Speed(object):
     def mph(self) -> float:
         """ speed value in `mph` """
         return self._value * MPS['mph']
+
+    @property
+    def fts(self) -> float:
+        """ speed value in `fts` """
+        return self._value * MPS['fts']
+
+    @property
+    def knots(self) -> float:
+        """ speed value in `knots` """
+        return self._value * MPS['knots']
 
     def __float__(self):
         return self.mps

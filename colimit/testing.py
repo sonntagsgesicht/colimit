@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.8, copyright Tuesday, 31 August 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -225,7 +225,6 @@ def gpx(gpx_file, wpt=False):
     time = pre + 'time'
     datetime_format = '%Y-%m-%dT%H:%M:%SZ'
 
-    total_dist = 0.0
     location_list = list()
     last = Location()
     root = XTree.parse(gpx_file)
@@ -237,9 +236,6 @@ def gpx(gpx_file, wpt=False):
         if last:
             diff = last.diff(pnt)
             if 0. < float(diff.speed):
-                dt = diff.timedelta.total_seconds()
-                dt = dt if dt else 1.0
-                total_dist += float(diff.speed) / dt
                 location_list.append(diff)
             else:
                 # ignore entries with no movement since the time moves always
@@ -247,13 +243,16 @@ def gpx(gpx_file, wpt=False):
         last = pnt
     if location_list:
         cnt = len(location_list)
+        total_dist = sum(s.dist(s.next()) for s in location_list)
         total_dist_kmh = total_dist / 1000.
         duration = last.time - location_list[0].time
         avg_spd = Speed(total_dist / duration.total_seconds())
         print('track found in %s' % gpx_file, end='')
-        print(' with %d entries' % cnt, end='')
-        print(' and total distance of %0.3f km' % total_dist_kmh, end='')
-        print(', duration %s' % str(duration), end='')
+        print(' with %d %s' % (cnt, ('way' if wpt else 'track') + 'points'))
+        print(' starting at %s' % str(location_list[0]))
+        print(' ending with %s' % str(location_list[-1]))
+        print(' and total distance of %0.3f km' % total_dist_kmh, end=',')
+        print(' duration %s' % str(duration), end='')
         print(' and average speed of %s' % str(avg_spd))
     return location_list
 

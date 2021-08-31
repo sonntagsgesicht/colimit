@@ -83,15 +83,25 @@ class FirstUnitTests(unittest.TestCase):
         self.assertEqual(os.getcwd().split(os.sep)[-1], pkg.__name__)
 
     def test_speed(self):
+        spd = self.speed
         value = float(self.speed)
+        self.assertTrue(isinstance(str(spd), str))
+        self.assertTrue(isinstance(repr(spd), str))
+
         self.assertAlmostEqual(float(Speed(value)), value)
         self.assertAlmostEqual(float(Speed(value, 'kmh')), value / 3.6)
         self.assertAlmostEqual(float(Speed(value, 'kmh')),
                                value / float(Speed(1).kmh))
         self.assertAlmostEqual(float(Speed(value, 'kmh').kmh), value)
+        self.assertAlmostEqual(float(Speed(value, 'mph').mph), value)
+        self.assertAlmostEqual(float(Speed(value, 'fts').fts), value)
+        self.assertAlmostEqual(float(Speed(value, 'knots').knots), value)
 
     def test_location(self):
         loc = self.location
+        self.assertTrue(isinstance(str(loc), str))
+        self.assertTrue(isinstance(repr(loc), str))
+
         self.assertAlmostEqual(loc.latitude, self.latitude)
         self.assertAlmostEqual(loc.longitude, self.longitude)
         self.assertAlmostEqual(float(loc.speed), float(self.speed))
@@ -151,13 +161,29 @@ class FirstUnitTests(unittest.TestCase):
         self.assertEqual(outer_left, other_left)
 
     def test_ways(self):
-        way = Way(111, limit=Speed(self.speed))
+        way = Way(111, limit=float(self.speed))
         way.geometry = self.locations
         for g in way.geometry:
             self.assertTrue(g in way)
 
         way_dict = Way(**way._dict)
         self.assertEqual(way, way_dict)
+        self.assertTrue(isinstance(str(way), str))
+        self.assertTrue(isinstance(repr(way), str))
+
+        way = Way(123, limit=float(self.speed), geometry=gpx(self.gpx_file))
+        south_west, north_east = way.boundary
+        self.assertEqual(Location(49.866743,07.990217), south_west)
+        self.assertEqual(Location(50.053581,08.666603), north_east)
+        center = way.center
+        self.assertEqual(Location(49.960162,08.328410), center)
+        dx, dy = way.diameter
+        self.assertAlmostEqual(75294.94509969912, dx)
+        self.assertAlmostEqual(20798.711020833827, dy)
+        length = way.length
+        duration = way.duration
+        self.assertAlmostEqual(92511.01945196062, length)
+        self.assertEqual(datetime.timedelta(seconds=2432), duration)
 
     def test_testing(self):
         locations = gpx(self.gpx_file)
@@ -166,6 +192,13 @@ class FirstUnitTests(unittest.TestCase):
         test(locations, lambda **x: (Way(),), self.get_limit_file, tester=t)
         self.assertEqual(len(locations), len(t.fails))
         print(t)
+
+    def test_plot(self):
+        locations = gpx(self.gpx_file)[:111]
+        ci = Connection(self.user, self.password, self.url, self.port)
+        t = _Tester()
+        test(locations, ci.get_ways, self.get_limit_file, tester=t)
+        t.plot(file=self.gpx_file + '.pdf', column='speed')
 
     def test_limits(self):
         path, file = os.path.split(self.get_limit_file)
