@@ -5,7 +5,7 @@
 # better know your limits
 # 
 # Author:   sonntagsgesicht
-# Version:  0.1.8, copyright Tuesday, 31 August 2021
+# Version:  0.1.9, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -23,7 +23,6 @@ __all__ = "Connection",
 URL = "http://limits.pythonanywhere.com"
 PORT = "80"
 TIMEOUT = 180
-METHODS_WITH_SECRET = 'upload', 'download'
 
 
 class Connection(object):
@@ -73,6 +72,10 @@ class Connection(object):
         self._key = True
         if not self._ping():
             print('%s:%s is offline' % (url, port))
+
+    @property
+    def _auth(self):
+        return self._usr, self._pwd
 
     @property
     def get_limit_code(self):
@@ -129,6 +132,7 @@ class Connection(object):
         }
         response = requests.post(
             url=self._build_url('get_limit'),
+            auth=self._auth,
             json=kwargs,
             timeout=self._tmt)
         if not response.status_code == 200:
@@ -211,6 +215,7 @@ class Connection(object):
 
         response = requests.post(
             url=self._build_url('get_ways'),
+            auth=self._auth,
             json=kwargs,
             timeout=self._tmt)
         if not response.status_code == 200:
@@ -227,16 +232,14 @@ class Connection(object):
     # --- private methods ---
 
     def _build_url(self, mth):
-        url = self._url + ':' + str(self._port)
-        args = url, mth, self._usr
-        if mth in METHODS_WITH_SECRET:
-            args += self._pwd,
-        return "/".join(args)
+        return self._url + ':' + str(self._port) + '/' + mth
 
     def _ping(self):
         try:
-            response = requests.get(url=self._url + ':' + str(self._port),
-                                    verify=self._key)
+            response = requests.get(
+                url=self._url + ':' + str(self._port),
+                auth=self._auth,
+                verify=self._key)
         except requests.exceptions.ConnectionError as e:
             print(e)
             return False
@@ -245,6 +248,7 @@ class Connection(object):
     def _download(self):
         response = requests.get(
             url=self._build_url('download'),
+            auth=self._auth,
             timeout=self._tmt,
             verify=self._key)
         if response.status_code == 200:
@@ -258,6 +262,7 @@ class Connection(object):
         with open(path, "r") as file:
             response = requests.post(
                 url=self._build_url('upload'),
+                auth=self._auth,
                 files={"filename": file},
                 timeout=self._tmt,
                 verify=self._key)

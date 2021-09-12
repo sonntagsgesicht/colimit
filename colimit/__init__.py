@@ -5,7 +5,7 @@
 # better know your limits
 # 
 # Author:   sonntagsgesicht
-# Version:  0.1.8, copyright Tuesday, 31 August 2021
+# Version:  0.1.9, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -21,8 +21,8 @@ __author__ = 'sonntagsgesicht'
 __email__ = 'sonntagsgesicht@icloud.com'
 __url__ = 'https://sonntagsgesicht.github.com/' + __name__
 
-__date__ = 'Tuesday, 31 August 2021'
-__version__ = '0.1.8'
+__date__ = 'Monday, 13 September 2021'
+__version__ = '0.1.9'
 __dev_status__ = '2 - Beta'
 
 __dependencies__ = 'requests',
@@ -37,18 +37,3 @@ from .testing import gpx, test
 from .way import Way
 
 __all__ = 'Speed', 'Location', 'Way', 'Connection', 'gpx', 'test'
-
-'''
-Backlog
-=======
-
-update infile doc `auxilium docmaintain`
-build doc zip file `
-auxilium sphinx;
-cd doc/sphinx/_build/html;
-zip -r html.zip .;
-mv html.zip ../../../../../colimit_app/staging;
-cd ../../../../;
-python setup.py sdist --formats=zip;
-cp dist/colimit-0.1.9.zip ../colimit_app/staging;
-'''
