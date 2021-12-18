@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.9, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -23,7 +23,7 @@ if True:
 
     user = password = "h_da_test"
     url, port = "http://macbook-philipp.local", 5000
-    #url, port = "https://limits.pythonanywhere.com", 443
+    url, port = "https://limits.pythonanywhere.com", 443
     get_limit_file = 'test/data/h_da_test.py'
     gpx_file = 'test/data/rhg.gpx'
 

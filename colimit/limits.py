@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
-# Version:  0.1.9, copyright Monday, 13 September 2021
+# Version:  0.1.10, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -50,7 +50,7 @@ class Connection(object):
         which then can be retrieved at |Connection().get_limit_code|.
 
         To update your `get_limit` code
-        use |Connection.update_get_limit_code()|.
+        use |Connection().update_get_limit_code()|.
 
         To call the `limits` database of geo data you can use
         |Connection().get_ways()|.
@@ -203,10 +203,10 @@ class Connection(object):
                 parts += "swen", "lat%08.5f" % south, "lon%08.5f" % west, \
                          "lat%08.5f" % north, "lon%08.5f" % east
             if all((latitude, longitude, radius)):
-                parts += "llr", "lat%08.5f" % latitude,\
+                parts += "llr", "lat%08.5f" % latitude, \
                          "lon%08.5f" % longitude, "rad%06.2f" % radius
             file_name = "_".join(parts)
-            file_name = file_name.replace('.','-') + ".json.zip"
+            file_name = file_name.replace('.', '-') + ".json.zip"
             file_path = os.path.join(file_cache, file_name)
 
             if os.path.exists(file_path):

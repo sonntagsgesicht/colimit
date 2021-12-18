@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
-# Version:  0.1.9, copyright Monday, 13 September 2021
+# Version:  0.1.10, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -116,7 +116,7 @@ class Way(object):
 
     @property
     def conditional(self):
-        """ `True` if _limit_ is conditional, i.e depends on time or weather """
+        """ True if _limit_ is conditional, i.e depends on time or weather """
         return self._conditional
 
     @property
@@ -187,7 +187,7 @@ class Way(object):
         if isinstance(item, Location):
             sw, ne = self.boundary
             return sw.latitude <= item.latitude <= ne.latitude \
-                   and sw.longitude <= item.longitude <= ne.longitude
+                and sw.longitude <= item.longitude <= ne.longitude
         return False
 
     def __str__(self):

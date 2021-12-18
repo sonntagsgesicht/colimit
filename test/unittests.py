@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.9, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -27,10 +27,13 @@ logging.basicConfig()
 
 class FirstUnitTests(unittest.TestCase):
     def setUp(self):
+        path = 'data'
+        if not os.path.exists(path):
+            path = os.path.join('test', path)
         self.user = self.password = "h_da_test"
         self.url, self.port = "http://macbook-philipp.local", 5000
         # self.url, self.port = "https://limits.pythonanywhere.com", 443
-        self.pub_key = "data/key.pub"
+        self.pub_key = os.path.join(path, "key.pub")
 
         self.radius = 123.4
         self.latitude, self.longitude = 49.867219, 8.638495
@@ -62,9 +65,10 @@ class FirstUnitTests(unittest.TestCase):
             'direction': self.direction
         }
 
-        self.gpx_file = 'data/rhg.gpx'
-        self.get_limit_file = 'data/h_da_test.py'
-        self.file_cache = 'data/file_cache'
+        self.gpx_file_wo_time = os.path.join(path, "rhg_wo_time.gpx")
+        self.gpx_file = os.path.join(path, "rhg.gpx")
+        self.get_limit_file = os.path.join(path, "h_da_test.py")
+        self.file_cache = os.path.join(path, "file_cache")
 
         if os.path.exists(self.file_cache):
             for filename in os.listdir(self.file_cache):
@@ -186,6 +190,8 @@ class FirstUnitTests(unittest.TestCase):
         self.assertEqual(datetime.timedelta(seconds=2432), duration)
 
     def test_testing(self):
+        locations = gpx(self.gpx_file_wo_time)
+        self.assertEqual(57, len(locations))
         locations = gpx(self.gpx_file)
         self.assertEqual(2299, len(locations))
         t = _Tester()

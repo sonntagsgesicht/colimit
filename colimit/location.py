@@ -3,15 +3,15 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
-# Version:  0.1.9, copyright Monday, 13 September 2021
+# Version:  0.1.10, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
 
 import datetime
-from math import pi, sqrt, sin, cos, radians, degrees, asin, acos
+from math import sqrt, sin, cos, radians, degrees, acos
 
 from .speed import Speed
 
@@ -97,7 +97,7 @@ class Location(object):
         (|Location().dist()|, |Location().diff()|, |Location().next()|)
         makes use of geometry class properties
 
-            |Location.polar()| and |Location.xy()|
+            |Location().polar()| and |Location().xy()|
 
         which sets the underlying geometry,
         i.e the local maps from tangent space
@@ -247,7 +247,7 @@ class Location(object):
         :return: :class:`float` (distance in meters)
 
         transformation makes use of geometry class property
-        |Location.polar()| which sets the underlying geometry
+        |Location().polar()| which sets the underlying geometry
         """
         other = self.__class__() if other is None else other
         return self.__class__.polar(*self.coordinate, *other.coordinate)[0]
@@ -261,14 +261,14 @@ class Location(object):
             (except **speed**, **direction** and **timedelta**)
         :return: |Location|
 
-        |Location.diff()| is somehow the inverse to |Location.next()|
+        |Location().diff()| is somehow the inverse to |Location().next()|
         since
 
         .. code-block:: python
 
             >>> from colimit import Location
-            >>> h_da = colimit.Location(latitude=49.867219, longitude=8.638495)
-            >>> tu_da = colimit.Location(latitude=49.875148, longitude=8.658122)
+            >>> h_da = colimit.Location(latitude=49.86722, longitude=8.638495)
+            >>> tu_da = colimit.Location(latitude=49.87515, longitude=8.658122)
             >>> delta = h_da.diff(tu_da)
             >>> h_da.coordinate == delta.coordinate
             True
@@ -276,7 +276,7 @@ class Location(object):
             True
 
         Note the transformation makes use of geometry class property
-        |Location.polar()| which sets the underlying geometry
+        |Location().polar()| which sets the underlying geometry
         """
         # build location to get in time from self to other
         dist, drc = self.__class__.polar(*self.coordinate, *other.coordinate)
@@ -298,7 +298,7 @@ class Location(object):
         :return: |Location|
 
         transformation makes use of geometry class property
-        |Location.xy()| which sets the underlying geometry
+        |Location().xy()| which sets the underlying geometry
         """
         if timedelta is None:
             timedelta = self.timedelta

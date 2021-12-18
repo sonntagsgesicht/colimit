@@ -3,20 +3,20 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
-# Version:  0.1.9, copyright Monday, 13 September 2021
+# Version:  0.1.10, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
 
 from importlib import reload
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import sys
 
 from timeit import default_timer as timer
-import xml.etree.ElementTree as XTree
+import xml.etree.ElementTree as XTree  # nosec B314:blacklist
 
 from .location import Location
 from .speed import Speed
@@ -104,7 +104,7 @@ class _Tester(object):
         try:
             import contextily as cx
             import matplotlib.pyplot as plt
-            import matplotlib as mpl
+            import matplotlib as mpl  # noqa F401
         except ImportError:
             print("Plotting requires the contextily and matplotlib package.")
             return None
@@ -131,7 +131,9 @@ class _Tester(object):
         # ax = gdf.plot(cmap="RdYlGn_r", column='speed', vmin=0, vmax=130,
         #               markersize=5, marker='o', figsize=A4, aspect='equal')
 
-        ax = gdf.plot(**kwargs, legend=True, legend_kwds={'orientation':'horizontal'})
+        ax = gdf.plot(**kwargs,
+                      legend=True,
+                      legend_kwds={'orientation': 'horizontal'})
         cx.add_basemap(ax, crs=gdf.crs.to_string(),
                        source=cx.providers.CartoDB.Voyager)
         ax.set_title(column)
@@ -174,7 +176,7 @@ def _import(get_limit_file):
             return get_limit_file  # assuming to be get_limit_func
 
 
-def gpx(gpx_file, wpt=False):
+def gpx(gpx_file, wpt=False, time_step=1):
     """ builds list of locations from gpx file
 
     :param gpx_file: full path to gpx file
@@ -182,6 +184,8 @@ def gpx(gpx_file, wpt=False):
     :param wpt: bool, if **True** the **wpt** tag entries are used
         to build |Location()| instances in stead of the **trkpt** tag.
         Default is **False**.
+    :param time_step: int, if gpx file doesn't have time tags,
+        it's assumed each entry differs my **time_step** seconds.
 
     :return: :class:`tuple` (|Location()|)
 
@@ -231,8 +235,13 @@ def gpx(gpx_file, wpt=False):
     for child in root.iter(tag):
         lat = float(child.attrib.get('lat', 0.0))
         lon = float(child.attrib.get('lon', 0.0))
-        tm = datetime.strptime(child.find(time).text, datetime_format)
-        pnt = Location(lat, lon, time=tm)
+        if child.find(time) is not None:
+            tm = datetime.strptime(child.find(time).text, datetime_format)
+            # print('time %s found' % tm)
+            pnt = Location(lat, lon, time=tm)
+        else:
+            # print('no time found')
+            pnt = Location(lat, lon, time=last.time + timedelta(seconds=1))
         if last:
             diff = last.diff(pnt)
             if 0. < float(diff.speed):
@@ -283,7 +292,7 @@ def test(locations, get_ways, get_limit_file, get_limit_file_2=None,
 
             * **location** is the |Location|
             * **result** is the return value of first `get_limit`
-            * **result_2** is the return value of second `get_limit` or **None**
+            * **result_2** is the return val of second `get_limit` or **None**
             * **timing** is the execution time of first `get_limit`
             * **timing_2** is the execution time of second `get_limit` or 0.0
 

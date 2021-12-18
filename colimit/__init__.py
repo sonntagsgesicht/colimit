@@ -3,9 +3,9 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
-# Version:  0.1.9, copyright Monday, 13 September 2021
+# Version:  0.1.10, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -21,19 +21,21 @@ __author__ = 'sonntagsgesicht'
 __email__ = 'sonntagsgesicht@icloud.com'
 __url__ = 'https://sonntagsgesicht.github.com/' + __name__
 
-__date__ = 'Monday, 13 September 2021'
-__version__ = '0.1.9'
+__date__ = 'Saturday, 18 December 2021'
+__version__ = '0.1.10'
 __dev_status__ = '2 - Beta'
 
 __dependencies__ = 'requests',
 __dependency_links__ = ()
-__data__ = "*.zip",
+__data__ = "*.zip", "*.gpx"
 __scripts__ = ()
+__theme__ = 'sphinx_rtd_theme'
 
-from .limits import Connection
-from .location import Location
-from .speed import Speed
-from .testing import gpx, test
-from .way import Way
+
+from .limits import Connection  # noqa E402
+from .location import Location  # noqa E402
+from .speed import Speed  # noqa E402
+from .testing import gpx, test  # noqa E402
+from .way import Way  # noqa E402
 
 __all__ = 'Speed', 'Location', 'Way', 'Connection', 'gpx', 'test'

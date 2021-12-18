@@ -42,7 +42,7 @@ The latest stable version can always be installed or updated via
 
 .. code-block:: bash
 
-    $ pip install https://limits.pythonanywhere.com/limits.zip
+    $ pip install https://limits.pythonanywhere.com/colimit.zip
 
 Now, we can start `python <https://python.org>`_ interpreter
 and import the project simply by
@@ -139,7 +139,7 @@ The later can be used to predict future positions, again expressed as |Location|
 
 Since such prediction of motion differ on a sphere or ellipsoid to the motion
 in the flat plane, this becomes a geometric problem. By default, |Location| uses
-planar geometry. The relevant algorithm are |Location.polar()| and |Location.xy()|
+planar geometry. The relevant algorithm are |Location().polar()| and |Location().xy()|
 which can be replaced by more elaborated ones if needed.
 
 Moreover, to select the most reasonable way depending on |Location| is a geometric
@@ -151,11 +151,11 @@ in non planar geometry have to be derived.
 All this will take place in the ``get_limit`` file using plain python functionality
 plus the three **colimit** classes |Speed|, |Location| and |Way|.
 
-Once implemented, the file can be tested locally using |Connection.get_limit()| with
-|Connection.get_ways()|. Further test tools like |test()| and |gpx()| may be supportive.
+Once implemented, the file can be tested locally using |Connection().get_limit()| with
+|Connection().get_ways()|. Further test tools like |test()| and |gpx()| may be supportive.
 
 After successful local testing the ``get_limit`` file can be uploaded
-using a |Connection.update_get_limit_code()| to the backend server.
+using a |Connection().update_get_limit_code()| to the backend server.
 Now user tests on mobile devices can follow
 to evaluate the performance of the algorithm in practice.
 
