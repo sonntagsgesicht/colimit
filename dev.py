@@ -25,9 +25,9 @@ if True:
     url, port = "http://macbook-philipp.local", 5000
     url, port = "https://limits.pythonanywhere.com", 443
     get_limit_file = 'test/data/h_da_test.py'
-    gpx_file = 'test/data/rhg.gpx'
+    gpx_file = 'test/data/around_hda.gpx'
 
-    locations = gpx(gpx_file)[:111]
+    locations = gpx(gpx_file)
     ci = Connection(user, password, url, port)
     t = _Tester()
     test(locations, ci.get_ways, get_limit_file, tester=t)

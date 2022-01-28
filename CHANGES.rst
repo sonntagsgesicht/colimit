@@ -8,7 +8,7 @@ Release 0.1.10
 Release date was |today|
 
 * |gpx()| works with *gpx* files without **time** tag
-* migration to *auxilium* project
+* migration to `auxilium <https://auxilium.readthedocs.io/en/latest/intro.html>`_ project
 
 
 Release 0.1.9

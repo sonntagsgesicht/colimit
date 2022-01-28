@@ -5,7 +5,7 @@
 # better know your limits
 #
 # Author:   sonntagsgesicht
-# Version:  0.1.10, copyright Monday, 13 September 2021
+# Version:  0.1.10, copyright Saturday, 18 December 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -81,6 +81,7 @@ class _Tester(object):
         records = list()
         for loc, r1, r2, t1, t2 in self._tape:
             d = loc.json
+            d['location'] = loc
             d['timing_1'] = t1
             if isinstance(r1, tuple):
                 d['limit_1'], d['ways_1'] = r1
@@ -131,11 +132,18 @@ class _Tester(object):
         # ax = gdf.plot(cmap="RdYlGn_r", column='speed', vmin=0, vmax=130,
         #               markersize=5, marker='o', figsize=A4, aspect='equal')
 
+        locations = gdf['location'].to_list()
+        x = [loc.latitude for loc in locations]
+        y = [loc.longitude for loc in locations]
+        nexts = [loc.next(timedelta=1) for loc in locations]
+        u = [loc.latitude - z for loc, z in zip(nexts, x)]
+        v = [loc.longitude - z for loc, z in zip(nexts, y)]
         ax = gdf.plot(**kwargs,
                       legend=True,
                       legend_kwds={'orientation': 'horizontal'})
         cx.add_basemap(ax, crs=gdf.crs.to_string(),
                        source=cx.providers.CartoDB.Voyager)
+        ax.quiver(y, x, v, u, color='b', units='xy', headwidth=2, headlength=3)
         ax.set_title(column)
         if file is not None:
             print("save plot to", file)

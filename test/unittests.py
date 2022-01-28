@@ -32,7 +32,7 @@ class FirstUnitTests(unittest.TestCase):
             path = os.path.join('test', path)
         self.user = self.password = "h_da_test"
         self.url, self.port = "http://macbook-philipp.local", 5000
-        # self.url, self.port = "https://limits.pythonanywhere.com", 443
+        self.url, self.port = "https://limits.pythonanywhere.com", 443
         self.pub_key = os.path.join(path, "key.pub")
 
         self.radius = 123.4

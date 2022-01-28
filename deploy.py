@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.9, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -22,7 +22,7 @@ os.system("zip -r html.zip *")
 os.system("mv html.zip " + wd + "/../colimit_app/staging/html-" + VERSION + '.zip')
 os.chdir(wd)
 
-os.system("auxilium docmaintain")
+os.system("auxilium update")
 print("=== build dist ===")
 os.system("python3 setup.py sdist --formats=zip")
 os.system("cp dist/colimit-" + VERSION + ".zip ../colimit_app/staging")
