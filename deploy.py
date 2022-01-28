@@ -15,14 +15,14 @@ import os
 from colimit import __version__ as VERSION
 
 
-os.system("auxilium sphinx")
+os.system("auxilium -e '' doc")
 wd = os.getcwd()
 os.chdir("doc/sphinx/_build/html")
 os.system("zip -r html.zip *")
 os.system("mv html.zip " + wd + "/../colimit_app/staging/html-" + VERSION + '.zip')
 os.chdir(wd)
 
-os.system("auxilium update")
+os.system("auxilium -e '' update")
 print("=== build dist ===")
 os.system("python3 setup.py sdist --formats=zip")
 os.system("cp dist/colimit-" + VERSION + ".zip ../colimit_app/staging")
