@@ -36,7 +36,7 @@ class Location(object):
         :param direction: direction in degrees north
         :return: (latitude, longitude)
         """
-        phi = radians(90 - direction)
+        phi = radians(direction)
         w = latitude + degrees(distance * cos(phi) / EARTH_RADIUS)
         z = longitude + degrees(distance * sin(phi) / EARTH_RADIUS)
         return w, z
@@ -56,8 +56,7 @@ class Location(object):
         dy = radians(lon - longitude) * EARTH_RADIUS
         r = sqrt(dx ** 2 + dy ** 2)
         a = degrees(acos(_cap(dx / r))) if r else 0.0
-        a = 90 - a if 0 < dy else 90 + a
-        a = a if 0. <= a else 360.0 + a
+        a = a if 0. < dy else 360.0 - a
         return r, a
 
     def __init__(self,

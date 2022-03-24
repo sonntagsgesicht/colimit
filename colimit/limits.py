@@ -84,17 +84,20 @@ class Connection(object):
 
     # -- public methods ---
 
-    def update_get_limit_code(self, path):
+    def update_get_limit_code(self, path=None):
         """ upload `get_limit` code on server side
 
         :param path: full path to the `get_limit` file
 
         """
-        if os.path.exists(path):
+        if os.path.exists(str(path)):
             if not self._upload_from_file(path):
                 raise AssertionError("Code update failed.")
             if not self._validate_with_file(path):
                 raise AssertionError("Code validation failed.")
+        elif path:
+            if not self._upload_from_file(file=path):
+                raise AssertionError("Code update failed.")
         else:
             if not self._download_to_file(path):
                 raise AssertionError("Code download failed.")
@@ -258,14 +261,22 @@ class Connection(object):
         print(response.status_code, response.reason)
         return ''
 
-    def _upload_from_file(self, path):
-        with open(path, "r") as file:
+    def _upload_from_file(self, path='string', file=None):
+        if file:
             response = requests.post(
                 url=self._build_url('upload'),
                 auth=self._auth,
                 files={"filename": file},
                 timeout=self._tmt,
                 verify=self._key)
+        else:
+            with open(path, "r") as file:
+                response = requests.post(
+                    url=self._build_url('upload'),
+                    auth=self._auth,
+                    files={"filename": file},
+                    timeout=self._tmt,
+                    verify=self._key)
         if response.status_code == 200:
             print('read and uploaded `get_limit` code from %s' % path)
             return True

@@ -21,6 +21,9 @@ import xml.etree.ElementTree as XTree  # nosec B314:blacklist
 from .location import Location
 from .speed import Speed
 
+cm = 1 / 2.54
+A4 = 29.7 * cm, 21 * cm
+
 
 class _Tester(object):
 
@@ -31,6 +34,8 @@ class _Tester(object):
         self.eps = 1.
         self.cnt = 0
         self._tape = list()
+        self._tape_hash = None
+        self._dataframe = None
 
     @staticmethod
     def _parse_result(result):
@@ -72,6 +77,10 @@ class _Tester(object):
 
     @property
     def geodataframe(self):
+
+        if self._dataframe and self._tape_hash == hash(self._tape):
+            return self._dataframe
+
         try:
             from pandas import DataFrame
             from geopandas import points_from_xy, GeoDataFrame
@@ -85,8 +94,10 @@ class _Tester(object):
             d['timing_1'] = t1
             if isinstance(r1, tuple):
                 d['limit_1'], d['ways_1'] = r1
+                d['limit'], d['ways'] = r1
             else:
                 d['limit_1'] = r1
+                d['limit'] = r1
             if r2 is not None:
                 if isinstance(r2, tuple):
                     d['limit_2'], d['ways_2'] = r2
@@ -101,6 +112,21 @@ class _Tester(object):
             geometry = points_from_xy(df.longitude, df.latitude)
             return GeoDataFrame(df, geometry=geometry, crs='WGS-84')
 
+    def csv(self, *args, **kwargs):
+        df = self.geodataframe
+        cols = tuple(df.columns)
+        if 'ways' in cols:
+            df.drop('ways', axis=1, inplace=True)
+        if 'ways_1' in cols:
+            df.drop('ways_1', axis=1, inplace=True)
+        if 'ways_2' in cols:
+            df.drop('ways_2', axis=1, inplace=True)
+        if 'location' in cols:
+            df.drop('location', axis=1, inplace=True)
+        if 'geometry' in cols:
+            df.drop('geometry', axis=1, inplace=True)
+        df.to_csv(*args, **kwargs)
+
     def plot(self, **kwargs):
         try:
             import contextily as cx
@@ -109,18 +135,18 @@ class _Tester(object):
         except ImportError:
             print("Plotting requires the contextily and matplotlib package.")
             return None
-        cm = 1 / 2.54
-        A4 = 29.7 * cm, 21 * cm
 
         gdf = self.geodataframe
+
+        file = kwargs.pop('file', None)
+        quiver = kwargs.pop('quiver', False)
+
         if 'limit_diff' in gdf:
             column = 'limit_diff'
             cmap, vmin, vmax = "jet", -50, 50
         else:
             column = 'limit_1'
             cmap, vmin, vmax = "RdYlGn_r", 0, 130
-
-        file = kwargs.pop('file', None)
 
         kwargs['column'] = kwargs.get('column', column)
         kwargs['cmap'] = kwargs.get('cmap', cmap)
@@ -132,19 +158,21 @@ class _Tester(object):
         # ax = gdf.plot(cmap="RdYlGn_r", column='speed', vmin=0, vmax=130,
         #               markersize=5, marker='o', figsize=A4, aspect='equal')
 
-        locations = gdf['location'].to_list()
-        x = [loc.latitude for loc in locations]
-        y = [loc.longitude for loc in locations]
-        nexts = [loc.next(timedelta=1) for loc in locations]
-        u = [loc.latitude - z for loc, z in zip(nexts, x)]
-        v = [loc.longitude - z for loc, z in zip(nexts, y)]
         ax = gdf.plot(**kwargs,
                       legend=True,
                       legend_kwds={'orientation': 'horizontal'})
         cx.add_basemap(ax, crs=gdf.crs.to_string(),
                        source=cx.providers.CartoDB.Voyager)
-        ax.quiver(y, x, v, u, color='b', units='xy', headwidth=2, headlength=3)
-        ax.set_title(column)
+        if quiver:
+            locations = gdf['location'].to_list()
+            x = [loc.latitude for loc in locations]
+            y = [loc.longitude for loc in locations]
+            nexts = [loc.next(timedelta=1) for loc in locations]
+            u = [loc.latitude - z for loc, z in zip(nexts, x)]
+            v = [loc.longitude - z for loc, z in zip(nexts, y)]
+            ax.quiver(y, x, v, u,
+                      color='b', units='xy')#, headwidth=2, headlength=3)
+        ax.set_title(kwargs['column'])
         if file is not None:
             print("save plot to", file)
             plt.savefig(file, bbox_inches="tight")
@@ -153,10 +181,10 @@ class _Tester(object):
 
 def _call_get_limit(location, get_limit, get_ways, cache=None, folder=''):
     kwargs = {
-        'latitude': location.latitude,
-        'longitude': location.longitude,
-        'speed': location.speed,
-        'direction': location.direction,
+        'latitude': float(location.latitude),
+        'longitude': float(location.longitude),
+        'speed': float(location.speed),
+        'direction': float(location.direction),
         'get_ways': get_ways
         # 'get_ways': lambda **kw: get_ways(cache=cache, folder=folder, **kw)
     }
@@ -179,6 +207,7 @@ def _import(get_limit_file):
             module = __import__(tail.replace('.py', ''),
                                 fromlist=('get_limit',))
             module = reload(module)
+            sys.path.pop(-1)
             return getattr(module, 'get_limit') if module else None
         else:
             return get_limit_file  # assuming to be get_limit_func

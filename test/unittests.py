@@ -20,7 +20,7 @@ sys.path.append('..')
 
 pkg = __import__(os.getcwd().split(os.sep)[-1])
 from colimit import Speed, Location, Way, Connection, gpx, test
-from colimit.testing import _Tester
+from colimit.testing import _Tester, _import
 
 logging.basicConfig()
 
@@ -100,6 +100,21 @@ class FirstUnitTests(unittest.TestCase):
         self.assertAlmostEqual(float(Speed(value, 'mph').mph), value)
         self.assertAlmostEqual(float(Speed(value, 'fts').fts), value)
         self.assertAlmostEqual(float(Speed(value, 'knots').knots), value)
+
+    def test_xy(self):
+        c, cc = 0, 0
+        xy = (1, 1), (1, -1), (-1, -1), (-1, 1)
+        for x, y in xy:
+            x, y = c + x, cc + y
+            r, d = Location.polar(c, cc, x, y)
+
+            a, b = Location.xy(c, cc, r, d)
+            self.assertAlmostEqual(x, a)
+            self.assertAlmostEqual(y, b)
+
+            s, e = Location.polar(c, cc, a, b)
+            self.assertAlmostEqual(r, s)
+            self.assertAlmostEqual(d, e)
 
     def test_location(self):
         loc = self.location
@@ -200,25 +215,21 @@ class FirstUnitTests(unittest.TestCase):
         print(t)
 
     def test_plot(self):
-        locations = gpx(self.gpx_file)[:111]
+        locations = gpx(self.gpx_file)[::100]
         ci = Connection(self.user, self.password, self.url, self.port)
         t = _Tester()
         test(locations, ci.get_ways, self.get_limit_file, tester=t)
-        t.plot(file=self.gpx_file + '.pdf', column='speed')
+        t.plot(file=self.gpx_file + '.pdf', column='speed', quiver=True)
 
     def test_limits(self):
-        path, file = os.path.split(self.get_limit_file)
-        if path not in sys.path:
-            sys.path.append(path)
-        module = __import__(file.replace('.py', ''))# , fromlist=(FUNC_NAME,))
-        get_limit = getattr(module, 'get_limit')
+        get_limit = _import(self.get_limit_file)
 
         ci = Connection(self.user, self.password, self.url, self.port)
         ci.update_get_limit_code(self.get_limit_file)
 
         result = ci.get_ways(**self.swne_dict)
         self.assertTrue(isinstance(result, tuple))
-        self.assertEqual(28, len(result))
+        self.assertEqual(29, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
         self.assertTrue(os.path.exists(self.file_cache))
@@ -226,13 +237,13 @@ class FirstUnitTests(unittest.TestCase):
         result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
         self.assertEqual(1, len(os.listdir(self.file_cache)))
         self.assertTrue(isinstance(result, tuple))
-        self.assertEqual(28, len(result))
+        self.assertEqual(29, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
         result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
         self.assertEqual(1, len(os.listdir(self.file_cache)))
         self.assertTrue(isinstance(result, tuple))
-        self.assertEqual(28, len(result))
+        self.assertEqual(29, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
         limit, ways = get_limit(get_ways=ci.get_ways, **self.llsd_dict)

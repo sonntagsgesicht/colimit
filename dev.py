@@ -18,20 +18,22 @@ pkg = __import__(os.getcwd().split(os.sep)[-1])
 logging.basicConfig()
 
 if True:
-    from colimit import Connection, gpx, test
+    from colimit import Connection, gpx, test, Location, Speed
     from colimit.testing import _Tester
+    import matplotlib.pyplot as plt
 
-    user = password = "h_da_test"
+    user = password = "h_da_limits"
+    password = "h_DA_l!m1ts"
     url, port = "http://macbook-philipp.local", 5000
     url, port = "https://limits.pythonanywhere.com", 443
     get_limit_file = 'test/data/h_da_test.py'
     gpx_file = 'test/data/around_hda.gpx'
 
-    locations = gpx(gpx_file)
     ci = Connection(user, password, url, port)
+    locations = gpx(gpx_file)[::10]
     t = _Tester()
-    test(locations, ci.get_ways, get_limit_file, tester=t)
-    t.plot(file=gpx_file + '.pdf', column='speed')
+    test(locations, ci.get_ways, ci.get_limit, tester=t)
+    t.plot(file=gpx_file + '.pdf', column='speed', quiver=True)
 
     # df = pd.DataFrame(d)
     # geometry = geopandas.points_from_xy(df.longitude, df.latitude)
