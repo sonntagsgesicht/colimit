@@ -1,3 +1,6 @@
 auxilium
 requests
-setuptools
+pandas
+geopandas
+contextily
+matplotlib

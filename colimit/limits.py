@@ -20,9 +20,13 @@ from .way import Way
 
 __all__ = "Connection",
 
-URL = "http://limits.pythonanywhere.com"
-PORT = "80"
+URL = "https://limits.pythonanywhere.com"
+PORT = "443"
 TIMEOUT = 180
+
+
+class LimitsServerError(Exception):
+    pass
 
 
 class Connection(object):
@@ -139,7 +143,8 @@ class Connection(object):
             json=kwargs,
             timeout=self._tmt)
         if not response.status_code == 200:
-            raise ConnectionError(response.text)
+            print(response.status_code, response.reason, response.text)
+            raise LimitsServerError(response.text)
         result = response.json()
         limit = result.get('limit', None)
         ways = tuple(Way(**w) for w in result.get('ways', ()))
@@ -222,7 +227,8 @@ class Connection(object):
             json=kwargs,
             timeout=self._tmt)
         if not response.status_code == 200:
-            raise ConnectionError(response.text)
+            print(response.status_code, response.reason, response.text)
+            raise LimitsServerError(response.text)
         result = response.json()
         ways = tuple(result['ways'])
 
@@ -254,12 +260,12 @@ class Connection(object):
             auth=self._auth,
             timeout=self._tmt,
             verify=self._key)
-        if response.status_code == 200:
-            print('downloaded `get_limit` code')
-            return response.text
-        print('download of `get_limit` code failed')
-        print(response.status_code, response.reason)
-        return ''
+        if not response.status_code == 200:
+            print('download of `get_limit` code failed')
+            print(response.status_code, response.reason, response.text)
+            raise LimitsServerError(response.text)
+        print('downloaded `get_limit` code')
+        return response.text
 
     def _upload_from_file(self, path='string', file=None):
         if file:
@@ -277,12 +283,12 @@ class Connection(object):
                     files={"filename": file},
                     timeout=self._tmt,
                     verify=self._key)
-        if response.status_code == 200:
-            print('read and uploaded `get_limit` code from %s' % path)
-            return True
-        print('uploaded `get_limit` code from %s failed' % path)
-        print(response.status_code, response.reason)
-        return False
+        if not response.status_code == 200:
+            print('uploaded `get_limit` code from %s failed' % path)
+            print(response.status_code, response.reason, response.text)
+            raise LimitsServerError(response.text)
+        print('read and uploaded `get_limit` code from %s' % path)
+        return True
 
     def _download_to_file(self, path=""):
         code = self._download()
