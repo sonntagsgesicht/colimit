@@ -19,6 +19,7 @@ from .speed import Speed
 class Way(object):
 
     def __init__(self,
+                 locations= tuple(),
                  id: int = 0,
                  nodes: tuple = tuple(),
                  geometry: tuple = tuple(),
@@ -50,7 +51,9 @@ class Way(object):
                 e.g. _locations_ for _geometry_ or _maxspeed_ for _limit_.
         """
         nodes = tuple(int(n) for n in nodes)
-        geometry = geometry or kwargs.get('locations', tuple())
+        if locations and geometry:
+            raise ValueError("must use either locations or geometry argument")
+        geometry = geometry or locations
         geometry = tuple(
             g if isinstance(g, Location) else Location(**g) for g in geometry)
         if geometry and nodes:
@@ -66,6 +69,7 @@ class Way(object):
         self._variable = variable
         self._conditional = conditional
         self._boundary = ()
+        self._segments = tuple(s.diff(e, timedelta=1) for s, e in zip(geometry[:-1], geometry[1:]))
 
     @staticmethod
     def _validate_geometry(nodes, geometry):
@@ -88,6 +92,11 @@ class Way(object):
         # validate geometries
         self._validate_geometry(self._nodes, value)
         self._geometry = value
+        self._segments = tuple(s.diff(e, timedelta=1) for s, e in zip(value[:-1], value[1:]))
+
+    @property
+    def segments(self):
+        return self._segments
 
     @property
     def id(self):
@@ -167,7 +176,9 @@ class Way(object):
         d['conditional'] = self.conditional
         d['limit'] = float(self.limit)
         d['geometry'] = tuple({'latitude': float(g.latitude),
-                               'longitude': float(g.longitude)
+                               'longitude': float(g.longitude),
+                               'speed': float(g.speed.mps),
+                               'direction': float(g.direction)
                                } for g in self.geometry)
         return d
 
@@ -213,3 +224,12 @@ class Way(object):
 
     def __hash__(self):
         return hash(str(self.json))
+
+    def __getitem__(self, item):
+        return self._geometry.__getitem__(item)
+
+    def __setitem__(self, key, value):
+        return self._geometry.__setattr__(item, value)
+
+    def __len__(self):
+        return len(self._geometry)

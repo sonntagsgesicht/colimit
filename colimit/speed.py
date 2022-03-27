@@ -80,6 +80,8 @@ class Speed(object):
         return self.mps
 
     def __str__(self):
+        if self.mps < 0:
+            return "no information"
         return '%0.2f mps (%0.2f km/h or %0.2f mph)' % \
                (self.mps, self.kmh, self.mph)
 
@@ -105,7 +107,10 @@ class Speed(object):
         return float(self).__cmp__(float(other))
 
     def __eq__(self, other):
-        return float(self).__eq__(float(other))
+        try:
+            return float(self).__eq__(float(other))
+        except ValueError:
+            return False
 
     def __hash__(self):
         return hash(float(self))

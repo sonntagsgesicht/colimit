@@ -57,6 +57,7 @@ class Location(object):
         r = sqrt(dx ** 2 + dy ** 2)
         a = degrees(acos(_cap(dx / r))) if r else 0.0
         a = a if 0. < dy else 360.0 - a
+        a = a if 0 <= a else 360 + a
         return r, a
 
     def __init__(self,
@@ -251,13 +252,25 @@ class Location(object):
         other = self.__class__() if other is None else other
         return self.__class__.polar(*self.coordinate, *other.coordinate)[0]
 
+    def dir(self, other=None):
+        """ direction to another |Location| object
+
+        :param other: location (optional with default |Location()|
+        :return: :class:`float` (distance in meters)
+
+        transformation makes use of geometry class property
+        |Location().polar()| which sets the underlying geometry
+        """
+        other = self.__class__() if other is None else other
+        return self.__class__.polar(*self.coordinate, *other.coordinate)[1]
+
     def diff(self, other, **kwargs):
         """ difference to another location
             expressed as |Location| with speed, direction and timedelta
 
         :param other: the other location
         :param kwargs: optional Location argument overwrites
-            (except **speed**, **direction** and **timedelta**)
+            (except **speed** and **direction**)
         :return: |Location|
 
         |Location().diff()| is somehow the inverse to |Location().next()|
@@ -278,9 +291,12 @@ class Location(object):
         |Location().polar()| which sets the underlying geometry
         """
         # build location to get in time from self to other
+        other = self.__class__() if other is None else other
         dist, drc = self.__class__.polar(*self.coordinate, *other.coordinate)
-        td = other.time - self.time
-        spd = dist / td.total_seconds() if td else 0.0
+        td = kwargs.pop('timedelta', other.time - self.time)
+        if isinstance(td, datetime.timedelta):
+            td = td.total_seconds()
+        spd = dist / td if td else 0.0
         return self.clone(speed=spd, direction=drc, timedelta=td, **kwargs)
 
     def next(self, radius=None, direction=None, timedelta=None, **kwargs):
@@ -310,6 +326,57 @@ class Location(object):
         lat, lon = self.__class__.xy(*self.coordinate, radius, direction)
         tm = self.time + datetime.timedelta(seconds=timedelta)
         return self.clone(latitude=lat, longitude=lon, time=tm, **kwargs)
+
+    def project(self, a, b=None, segment=False):
+        """ projects location onto line given by two location **a** and **b**
+
+        :param a: first |Location| defining the line to project to
+        :param b: second |Location| defining the line to project to,
+            (optional, default **a.next()**).
+        :param segment: bool if projected |Location| is sheard
+            to fall into segment between **a** and **b**,
+            i.e. if projected **p** doesn't fall between **a** and **b**,
+            the returning location will have coordinates of
+            either **a** or **b**. (optional, default |False|)
+        :return: **p** |Location| projected onto line by **a** and **b**
+            pointing in direction from **a** to **b**
+            with the projected speed in such direction.
+
+        """
+        b = a.next() if b is None else b
+        if a == b:
+            return a
+
+        # get direction d from a to b
+        _, d = self.polar(*a.coordinate, *b.coordinate)
+        # set speed at p in direction of d
+        s = self.speed * cos(radians(self.direction - d))
+
+        # turn into cartesian coordiantes
+        ay, ax = a.coordinate
+        by, bx = b.coordinate
+        ly, lx = self.coordinate
+        # center in a
+        ly, lx = ly - ay, lx - ax
+        by, bx = by - ay, bx - ax
+        # calc scalar product
+        dot_lb = lx * bx + ly * by
+        dot_bb = bx * bx + by * by
+        # project and shift back from a
+        py = dot_lb / dot_bb * by + ay
+        px = dot_lb / dot_bb * bx + ax
+        p = self.clone(latitude=py,
+                       longitude=px,
+                       direction=d,
+                       speed=s)
+
+        if segment and not 0. <= dot_lb / dot_bb < 1.:
+            n = sorted((a, b), key=self.dist)[0]
+            p = self.clone(latitude=n.latitude,
+                           longitude=n.longitude,
+                           direction=d,
+                           speed=s)
+        return p
 
     # --- private methods ---
 

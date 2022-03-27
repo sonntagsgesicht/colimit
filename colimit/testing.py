@@ -95,9 +95,20 @@ class _Tester(object):
             if isinstance(r1, tuple):
                 d['limit_1'], d['ways_1'] = r1
                 d['limit'], d['ways'] = r1
+                if isinstance(r1, Speed):
+                    d['limit_1'] = d['limit'] = r1.kmh
+                elif isinstance(r1, float):
+                    d['limit_1'] = d['limit'] = Speed(r1).kmh
             else:
-                d['limit_1'] = r1
-                d['limit'] = r1
+                if isinstance(r1, Speed):
+                    d['limit_1'] = d['limit'] = r1.kmh
+                elif isinstance(r1, float):
+                    d['limit_1'] = d['limit'] = Speed(r1).kmh
+                else:
+                    d['limit_1'] = r1[0].limit.kmh
+                    d['ways'] = r1
+            d['limit'] = d['limit_1']
+
             if r2 is not None:
                 if isinstance(r2, tuple):
                     d['limit_2'], d['ways_2'] = r2

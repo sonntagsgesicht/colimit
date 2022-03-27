@@ -180,7 +180,7 @@ class FirstUnitTests(unittest.TestCase):
         self.assertEqual(outer_left, other_left)
 
     def test_ways(self):
-        way = Way(111, limit=float(self.speed))
+        way = Way(id=111, limit=float(self.speed))
         way.geometry = self.locations
         for g in way.geometry:
             self.assertTrue(g in way)
@@ -190,7 +190,7 @@ class FirstUnitTests(unittest.TestCase):
         self.assertTrue(isinstance(str(way), str))
         self.assertTrue(isinstance(repr(way), str))
 
-        way = Way(123, limit=float(self.speed), geometry=gpx(self.gpx_file))
+        way = Way(id=123, limit=float(self.speed), geometry=gpx(self.gpx_file))
         south_west, north_east = way.boundary
         self.assertEqual(Location(49.866743,07.990217), south_west)
         self.assertEqual(Location(50.053581,08.666603), north_east)
