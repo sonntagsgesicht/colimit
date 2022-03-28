@@ -5,7 +5,7 @@
 # better know your limits
 #
 # Author:   sonntagsgesicht
-# Version:  0.1.12, copyright Friday, 28 January 2022
+# Version:  0.1.12, copyright Monday, 28 March 2022
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -356,7 +356,7 @@ class Location(object):
             >>> projection.coordinate == projection2.coordinate
             True
 
-        """
+        """  # noqa E501
         b = a.next() if b is None else b
         if a == b:
             return a
