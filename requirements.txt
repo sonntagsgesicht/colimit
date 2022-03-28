@@ -4,3 +4,4 @@ pandas
 geopandas
 contextily
 matplotlib
+bs4
