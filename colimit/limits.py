@@ -5,7 +5,7 @@
 # better know your limits
 #
 # Author:   sonntagsgesicht
-# Version:  0.1.12, copyright Friday, 28 January 2022
+# Version:  0.1.12, copyright Monday, 28 March 2022
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -32,7 +32,7 @@ class LimitsServerError(Exception):
 
 class Connection(object):
 
-    def __init__(self, username=None, password='',
+    def __init__(self, username=None, password=None,
                  url=URL, port=None, timeout=None):
         """ |Connection| to a `limits` development server
 
