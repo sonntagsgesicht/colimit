@@ -27,7 +27,14 @@ TIMEOUT = 180
 
 class LimitsServerError(Exception):
     """Error on limits server"""
-    pass
+    def __init__(self, e):
+        if isinstance(e, str) and e.startswith('<!DOCTYPE HTML'):
+            try:
+                from bs4 import BeautifulSoup
+                e = BeautifulSoup(e).get_text('\n')
+            except:
+                pass
+        super().__init__(e)
 
 
 class Connection(object):
