@@ -5,7 +5,7 @@
 # better know your limits
 #
 # Author:   sonntagsgesicht
-# Version:  0.1.10, copyright Monday, 13 September 2021
+# Version:  0.1.12, copyright Friday, 28 January 2022
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -19,7 +19,7 @@ from .speed import Speed
 class Way(object):
 
     def __init__(self,
-                 locations= tuple(),
+                 locations: tuple = tuple(),
                  id: int = 0,
                  nodes: tuple = tuple(),
                  geometry: tuple = tuple(),
@@ -69,7 +69,8 @@ class Way(object):
         self._variable = variable
         self._conditional = conditional
         self._boundary = ()
-        self._segments = tuple(s.diff(e, timedelta=1) for s, e in zip(geometry[:-1], geometry[1:]))
+        self._segments = tuple(s.diff(e, timedelta=1)
+                               for s, e in zip(geometry[:-1], geometry[1:]))
 
     @staticmethod
     def _validate_geometry(nodes, geometry):
@@ -92,7 +93,8 @@ class Way(object):
         # validate geometries
         self._validate_geometry(self._nodes, value)
         self._geometry = value
-        self._segments = tuple(s.diff(e, timedelta=1) for s, e in zip(value[:-1], value[1:]))
+        self._segments = tuple(s.diff(e, timedelta=1)
+                               for s, e in zip(value[:-1], value[1:]))
 
     @property
     def segments(self):
@@ -227,9 +229,6 @@ class Way(object):
 
     def __getitem__(self, item):
         return self._geometry.__getitem__(item)
-
-    def __setitem__(self, key, value):
-        return self._geometry.__setattr__(item, value)
 
     def __len__(self):
         return len(self._geometry)

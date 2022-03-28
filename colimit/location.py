@@ -5,7 +5,7 @@
 # better know your limits
 #
 # Author:   sonntagsgesicht
-# Version:  0.1.10, copyright Monday, 13 September 2021
+# Version:  0.1.12, copyright Friday, 28 January 2022
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -279,8 +279,8 @@ class Location(object):
         .. code-block:: python
 
             >>> from colimit import Location
-            >>> h_da = colimit.Location(latitude=49.86722, longitude=8.638495)
-            >>> tu_da = colimit.Location(latitude=49.87515, longitude=8.658122)
+            >>> h_da = Location(latitude=49.86722, longitude=8.638495)
+            >>> tu_da = Location(latitude=49.87515, longitude=8.658122)
             >>> delta = h_da.diff(tu_da)
             >>> h_da.coordinate == delta.coordinate
             True
@@ -337,10 +337,24 @@ class Location(object):
             to fall into segment between **a** and **b**,
             i.e. if projected **p** doesn't fall between **a** and **b**,
             the returning location will have coordinates of
-            either **a** or **b**. (optional, default |False|)
+            either **a** or **b**. (optional, default False)
         :return: **p** |Location| projected onto line by **a** and **b**
             pointing in direction from **a** to **b**
             with the projected speed in such direction.
+
+        .. code-block:: python
+
+            >>> from colimit import Location
+            >>> hbf = Location(latitude=49.8726, longitude=8.6315)
+            >>> h_da = Location(latitude=49.86722, longitude=8.638495)
+            >>> tu_da = Location(latitude=49.87515, longitude=8.658122)
+            >>> projection = hbf.project(h_da, tu_da)
+            >>> projection
+            Location(49.865545,08.634350) with speed 0.0 km/h in direction 68.00° at 22-03-28:11-02-33
+            >>> # check https://www.openstreetmap.org/?mlat=49.86554539823593&mlon=8.634350307840679
+            >>> projection2 = projection.project(h_da, tu_da)
+            >>> projection.coordinate == projection2.coordinate
+            True
 
         """
         b = a.next() if b is None else b

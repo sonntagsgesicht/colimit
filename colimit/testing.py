@@ -5,7 +5,7 @@
 # better know your limits
 #
 # Author:   sonntagsgesicht
-# Version:  0.1.10, copyright Saturday, 18 December 2021
+# Version:  0.1.12, copyright Friday, 28 January 2022
 # Website:  https://sonntagsgesicht.github.com/colimit
 # License:  No License - only for h_da staff or students (see LICENSE file)
 
@@ -181,8 +181,7 @@ class _Tester(object):
             nexts = [loc.next(timedelta=1) for loc in locations]
             u = [loc.latitude - z for loc, z in zip(nexts, x)]
             v = [loc.longitude - z for loc, z in zip(nexts, y)]
-            ax.quiver(y, x, v, u,
-                      color='b', units='xy')#, headwidth=2, headlength=3)
+            ax.quiver(y, x, v, u, color='b', units='xy')
         ax.set_title(kwargs['column'])
         if file is not None:
             print("save plot to", file)

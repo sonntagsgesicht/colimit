@@ -133,7 +133,7 @@ class FirstUnitTests(unittest.TestCase):
         loc_2 = loc.next(radius=30, direction=45)
         loc_3 = loc.diff(loc_2)
         loc_4 = loc_3.next()
-        print(loc, loc_2, loc_3, loc_4, sep='\n')
+        # print(loc, loc_2, loc_3, loc_4, sep='\n')
 
         self.assertAlmostEqual(30., loc.dist(loc_2))
         self.assertAlmostEqual(0.0, loc_2.dist(loc_4))
@@ -155,6 +155,13 @@ class FirstUnitTests(unittest.TestCase):
 
         self.assertAlmostEqual(loc.timedelta, loc_2.timedelta)
         self.assertAlmostEqual(loc_3.timedelta, loc_4.timedelta)
+
+        a = Location(latitude=0.2+loc.latitude, longitude=0.1+loc.longitude,
+                     speed=2*loc.speed.mps, direction=2*loc.direction)
+
+        p = loc.project(a)
+        self.assertNotEqual(loc, p)
+        self.assertEqual(p, p.project(a))
 
     def test_boundary(self):
         radius = 123.45
