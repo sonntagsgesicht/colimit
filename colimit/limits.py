@@ -26,12 +26,13 @@ TIMEOUT = 180
 
 
 class LimitsServerError(Exception):
+    """Error on limits server"""
     pass
 
 
 class Connection(object):
 
-    def __init__(self, username, password,
+    def __init__(self, username=None, password='',
                  url=URL, port=None, timeout=None):
         """ |Connection| to a `limits` development server
 
@@ -68,14 +69,20 @@ class Connection(object):
         """
 
         self._usr = username
-        self._pwd = password
+        self._pwd = password or username
         self._url = url or URL
         self._port = port or PORT
         self._tmt = timeout
         print('connect as "%s" to %s:%s' % (username, url, port))
         self._key = True
-        if not self._ping():
-            print('%s:%s is offline' % (url, port))
+
+    @property
+    def online(self):
+        return self._ping()
+
+    @property
+    def connected(self):
+        return self._ping(auth=True)
 
     @property
     def _auth(self):
@@ -243,12 +250,16 @@ class Connection(object):
     def _build_url(self, mth):
         return self._url + ':' + str(self._port) + '/' + mth
 
-    def _ping(self):
+    def _ping(self, auth=False):
         try:
-            response = requests.get(
-                url=self._url + ':' + str(self._port),
-                auth=self._auth,
-                verify=self._key)
+            if auth:
+                response = requests.get(
+                    url=self._url + ':' + str(self._port),
+                    auth=self._auth,
+                    verify=self._key)
+            else:
+                response = requests.get(
+                    url=self._url + ':' + str(self._port))
         except requests.exceptions.ConnectionError as e:
             print(e)
             return False
@@ -272,7 +283,7 @@ class Connection(object):
             response = requests.post(
                 url=self._build_url('upload'),
                 auth=self._auth,
-                files={"filename": file},
+                files={"filename.py": file},
                 timeout=self._tmt,
                 verify=self._key)
         else:

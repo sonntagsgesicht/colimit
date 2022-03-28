@@ -30,9 +30,15 @@ class FirstUnitTests(unittest.TestCase):
         path = 'data'
         if not os.path.exists(path):
             path = os.path.join('test', path)
-        self.user = self.password = "h_da_test"
-        self.url, self.port = "http://macbook-philipp.local", 5000
-        self.url, self.port = "https://limits.pythonanywhere.com", 443
+
+        self.ci = Connection(
+            username="colimit_test",
+            url="http://macbook-philipp.local",
+            port=5000
+        )
+        if not self.ci.online:
+            self.ci = Connection(username="colimit_test")
+
         self.pub_key = os.path.join(path, "key.pub")
 
         self.radius = 123.4
@@ -67,7 +73,7 @@ class FirstUnitTests(unittest.TestCase):
 
         self.gpx_file_wo_time = os.path.join(path, "rhg_wo_time.gpx")
         self.gpx_file = os.path.join(path, "rhg.gpx")
-        self.get_limit_file = os.path.join(path, "h_da_test.py")
+        self.get_limit_file = os.path.join(path, "colimit_test.py")
         self.file_cache = os.path.join(path, "file_cache")
 
         if os.path.exists(self.file_cache):
@@ -222,39 +228,40 @@ class FirstUnitTests(unittest.TestCase):
         print(t)
 
     def test_plot(self):
-        locations = gpx(self.gpx_file)[::100]
-        ci = Connection(self.user, self.password, self.url, self.port)
+        self.assertTrue(self.ci.online, 'limits server offline')
+        self.assertTrue(self.ci.connected, 'not connected to limits server')
         t = _Tester()
-        test(locations, ci.get_ways, self.get_limit_file, tester=t)
+        locations = gpx(self.gpx_file)[::200]
+        test(locations, self.ci.get_ways, self.get_limit_file, tester=t)
         t.plot(file=self.gpx_file + '.pdf', column='speed', quiver=True)
 
     def test_limits(self):
+        self.assertTrue(self.ci.online, 'limits server offline')
+        self.assertTrue(self.ci.connected, 'not connected to limits server')
         get_limit = _import(self.get_limit_file)
 
-        ci = Connection(self.user, self.password, self.url, self.port)
-        ci.update_get_limit_code(self.get_limit_file)
-
-        result = ci.get_ways(**self.swne_dict)
+        self.ci.update_get_limit_code(self.get_limit_file)
+        result = self.ci.get_ways(**self.swne_dict)
         self.assertTrue(isinstance(result, tuple))
         self.assertEqual(29, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
         self.assertTrue(os.path.exists(self.file_cache))
         self.assertEqual(0, len(os.listdir(self.file_cache)))
-        result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
+        result = self.ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
         self.assertEqual(1, len(os.listdir(self.file_cache)))
         self.assertTrue(isinstance(result, tuple))
         self.assertEqual(29, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
-        result = ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
+        result = self.ci.get_ways(**self.swne_dict, file_cache=self.file_cache)
         self.assertEqual(1, len(os.listdir(self.file_cache)))
         self.assertTrue(isinstance(result, tuple))
         self.assertEqual(29, len(result))
         self.assertTrue(all(isinstance(w, Way) for w in result))
 
-        limit, ways = get_limit(get_ways=ci.get_ways, **self.llsd_dict)
-        limit_online, ways_online = ci.get_limit(**self.llsd_dict)
+        limit, ways = get_limit(get_ways=self.ci.get_ways, **self.llsd_dict)
+        limit_online, ways_online = self.ci.get_limit(**self.llsd_dict)
         self.assertAlmostEqual(limit, limit_online)
         self.assertTupleEqual(ways, ways_online)
 
