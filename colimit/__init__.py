@@ -25,7 +25,8 @@ __date__ = 'Tuesday, 29 March 2022'
 __version__ = '0.1.12'
 __dev_status__ = '4 - Beta'
 
-__dependencies__ = 'requests',
+__dependencies__ = 'requests', 'pandas', 'geopandas', 'contextily', \
+    'matplotlib', 'bs4'
 __dependency_links__ = ()
 __data__ = "*.zip", "*.gpx"
 __scripts__ = ()
