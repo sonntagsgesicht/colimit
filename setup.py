@@ -3,7 +3,7 @@
 # colimit
 # -------
 # better know your limits
-# 
+#
 # Author:   sonntagsgesicht
 # Version:  0.1.9, copyright Monday, 13 September 2021
 # Website:  https://sonntagsgesicht.github.com/colimit
@@ -45,8 +45,8 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Education',
-        'Topic :: Mobility',
         'Topic :: Software Development',
     ],
 )
