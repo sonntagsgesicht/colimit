@@ -65,14 +65,14 @@ This file should implement as fixed signature:
         # ... your code ...
         return limit, ways
 
-For details on the arguments and return value, see |Connection().get_limit()|.
-Note all arguments are :class:`float` except **get_ways**.
-**get_ways** will be a function, for details see |Connection().get_ways()|.
-It can be used to request a list of |Way()| objects within your `get_limit` function.
+For details on the arguments and return value, see **Connection().get_limit()**.
+Note all arguments are **float** except **get_ways**.
+**get_ways** will be a function, for details see `Connection().get_ways()`.
+It can be used to request a list of `Way()` objects within your `get_limit` function.
 Now, it is your turn to filter and sort clever!
 
-There are only a few other classes involved, as |Speed| which is just a simple extension
-of :class:`float` to provide convenient unit con version
+There are only a few other classes involved, as `Speed` which is just a simple extension
+of **float** to provide convenient unit con version
 from *km/h* or *mph* to *mps* and back. This is useful since internally all speed
 figures are in *mps*.
 
@@ -102,13 +102,13 @@ figures are in *mps*.
     >>> v * 2
     16.67 mps (60.00 km/h)
 
-Any |Way| is technically given as a ordered set of points
+Any `Way` is technically given as a ordered set of points
 (`nodes <https://wiki.openstreetmap.org/wiki/Node>`_),
 which is simply a list of
 `gps coordinate <https://en.wikipedia.org/wiki/Geographic_coordinate_system>`_.
-Each gps coordinate of **latitude** and **longitude** states a geo-|Location| data
+Each gps coordinate of **latitude** and **longitude** states a geo-`Location` data
 which can be enriched by data of motion **speed** and **direction**.
-The later can be used to predict future positions, again expressed as |Location|.
+The later can be used to predict future positions, again expressed as `Location`.
 
 .. code-block:: python
 
@@ -138,24 +138,24 @@ The later can be used to predict future positions, again expressed as |Location|
     16.666666666775978
 
 Since such prediction of motion differ on a sphere or ellipsoid to the motion
-in the flat plane, this becomes a geometric problem. By default, |Location| uses
-planar geometry. The relevant algorithm are |Location().polar()| and |Location().xy()|
+in the flat plane, this becomes a geometric problem. By default, `Location` uses
+planar geometry. The relevant algorithm are `Location().polar()` and `Location().xy()`
 which can be replaced by more elaborated ones if needed.
 
-Moreover, to select the most reasonable way depending on |Location| is a geometric
-problem, too. Each way is a polygon with vertices being |Location| points.
-So a way edge or way segment is just given by the line between tow |Location| points.
+Moreover, to select the most reasonable way depending on `Location` is a geometric
+problem, too. Each way is a polygon with vertices being `Location` points.
+So a way edge or way segment is just given by the line between tow `Location` points.
 To decide which way segment fits best, distances and directions
 in non planar geometry have to be derived.
 
 All this will take place in the ``get_limit`` file using plain python functionality
-plus the three **colimit** classes |Speed|, |Location| and |Way|.
+plus the three **colimit** classes `Speed`, `Location` and `Way`.
 
-Once implemented, the file can be tested locally using |Connection().get_limit()| with
-|Connection().get_ways()|. Further test tools like |test()| and |gpx()| may be supportive.
+Once implemented, the file can be tested locally using `Connection.get_limit()` with
+`Connection().get_ways()`. Further test tools like `test()` and `gpx()` may be supportive.
 
 After successful local testing the ``get_limit`` file can be uploaded
-using a |Connection().update_get_limit_code()| to the backend server.
+using a `Connection().update_get_limit_code()` to the backend server.
 Now user tests on mobile devices can follow
 to evaluate the performance of the algorithm in practice.
 
