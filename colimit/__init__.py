@@ -23,7 +23,7 @@ __url__ = 'https://sonntagsgesicht.github.com/' + __name__
 
 __date__ = 'Tuesday, 29 March 2022'
 __version__ = '0.1.12'
-__dev_status__ = '3 - Beta'
+__dev_status__ = '4 - Beta'
 
 __dependencies__ = 'requests',
 __dependency_links__ = ()
